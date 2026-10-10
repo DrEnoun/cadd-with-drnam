@@ -1,0 +1,125 @@
+{
+ "_about": "Pre/post concept test for Module 3 (ADME). 'answer' is the index of the correct option. Check the science before using with students.",
+ "questions": [
+  {
+   "id": "q1",
+   "q": "What do the letters ADME stand for?",
+   "options": [
+    "Absorption, Distribution, Metabolism, Excretion",
+    "Activity, Dose, Metabolism, Efficacy",
+    "Absorption, Dosage, Mixing, Elimination",
+    "Affinity, Distribution, Mutation, Excretion"
+   ],
+   "answer": 0,
+   "why": "ADME describes what the body does to a drug: it is absorbed, distributed, metabolised and excreted."
+  },
+  {
+   "id": "q2",
+   "q": "A compound binds its target very strongly in the lab but fails in animals because almost none of it reaches the blood. Which ADME property is the most likely problem?",
+   "options": [
+    "Absorption",
+    "Excretion",
+    "Docking score",
+    "Target selectivity"
+   ],
+   "answer": 0,
+   "why": "Strong binding does not matter if the compound never reaches the target. Poor solubility or permeability limits absorption."
+  },
+  {
+   "id": "q3",
+   "q": "In the BOILED-Egg style map, what does a compound inside the white region suggest?",
+   "options": [
+    "Good passive absorption from the gut",
+    "The compound is toxic",
+    "The compound has a high molecular weight",
+    "It will bind strongly to every protein"
+   ],
+   "answer": 0,
+   "why": "The white of the egg marks the TPSA and cLogP range where passive absorption through the gut wall is likely. The yolk adds likely passage through the blood-brain barrier."
+  },
+  {
+   "id": "q4",
+   "q": "Which pair of properties draws the egg map?",
+   "options": [
+    "Polar surface area (TPSA) and lipophilicity (cLogP)",
+    "Molecular weight and number of rings",
+    "Melting point and colour",
+    "Docking score and RMSD"
+   ],
+   "answer": 0,
+   "why": "Too polar (high TPSA) and the drug cannot cross membranes; too greasy and it may not dissolve. The egg shows the balance."
+  },
+  {
+   "id": "q5",
+   "q": "Aspirin is a weak acid (pKa about 3.5). In the stomach (pH about 1.5), most of it is…",
+   "options": [
+    "Un-ionised, so it crosses membranes more easily",
+    "Ionised, so it cannot cross membranes",
+    "Destroyed",
+    "Unchanged by pH"
+   ],
+   "answer": 0,
+   "why": "When the pH is below the pKa of an acid, most of the acid keeps its proton and is neutral. Neutral molecules cross membranes more easily."
+  },
+  {
+   "id": "q6",
+   "q": "What does phase I metabolism usually do to a drug?",
+   "options": [
+    "Adds or reveals a polar group, for example by oxidation (often by CYP enzymes)",
+    "Attaches a sugar to make it excretable",
+    "Increases its absorption",
+    "Removes it through the kidneys"
+   ],
+   "answer": 0,
+   "why": "Phase I reactions (oxidation, reduction, hydrolysis) change the molecule. Phase II then conjugates it, for example with glucuronic acid."
+  },
+  {
+   "id": "q7",
+   "q": "A drug has a half-life of 6 hours. About how long until it is almost completely removed (about 5 half-lives)?",
+   "options": [
+    "About 30 hours",
+    "About 6 hours",
+    "About 12 hours",
+    "About 3 days"
+   ],
+   "answer": 0,
+   "why": "After one half-life half remains, then a quarter, an eighth and so on: after 5 half-lives about 3% is left, so about 5 × 6 = 30 hours."
+  },
+  {
+   "id": "q8",
+   "q": "What happens if you take doses more often than the body can clear them?",
+   "options": [
+    "The drug accumulates until it reaches a steady state (and may become toxic)",
+    "The drug is cleared faster",
+    "Nothing changes",
+    "The half-life becomes shorter"
+   ],
+   "answer": 0,
+   "why": "Each dose adds to what is left from the last one. Levels rise until the amount removed in an interval equals the dose; if that is too high, the drug can be toxic."
+  },
+  {
+   "id": "q9",
+   "q": "What is first-pass metabolism?",
+   "options": [
+    "Part of an oral dose is metabolised in the gut wall and liver before it reaches the general circulation",
+    "The first dose given to a patient",
+    "The first test of a compound in the lab",
+    "Metabolism in the kidney only"
+   ],
+   "answer": 0,
+   "why": "Blood from the gut goes to the liver first. Drugs that are broken down there have a low oral bioavailability."
+  },
+  {
+   "id": "q10",
+   "q": "Why are computational ADME predictions used early in a drug project?",
+   "options": [
+    "They cheaply flag compounds likely to fail, so lab work focuses on better candidates; but they still need confirmation",
+    "They replace all animal and human studies",
+    "They prove a compound is safe",
+    "They are more accurate than experiments"
+   ],
+   "answer": 0,
+   "why": "Predictions are fast and cheap guides. They reduce late failures but cannot replace experimental ADME and safety studies."
+  }
+ ]
+}

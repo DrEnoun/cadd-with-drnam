@@ -21,6 +21,11 @@ export const PERCEPTION = {
     'This module helped me understand what to analyse after docking.',
     'I feel more confident to learn docking software after this module.',
   ],
+  adme: [
+    'This module helped me understand why ADME matters for a drug candidate.',
+    'This module helped me understand how to read ADME predictions and what they cannot tell us.',
+    'I feel more confident to learn ADME prediction software after this module.',
+  ],
   screening: [
     'This module helped me understand why we screen compound libraries on the computer.',
     'This module helped me understand how to judge whether a screen worked and choose hits.',

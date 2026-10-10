@@ -86,3 +86,36 @@ teach.prepare.forEach(p => assert.ok(['keep', 'remove', 'fix'].includes(p.answer
 assert.equal(sq.length, 10); sq.forEach(q => { assert.ok(q.options.length >= 3 && q.answer >= 0 && q.answer < q.options.length && q.why, q.id); });
 console.log('Docking data and maths OK');
 console.log('Virtual screening data and maths OK');
+
+// ---- Module 3: ADME
+import * as A from '../js/modules/adme/stats.js';
+const adme = J('data/adme/drugs.json'), aT = J('data/adme/teaching.json'), aq = J('data/adme/quiz.json').questions, ad = adme.drugs, nm = n => ad.find(d => d.name === n);
+assert.equal(ad.length, 45); assert.equal(aq.length, 10); aq.forEach(q => assert.ok(q.answer >= 0 && q.answer < q.options.length && q.why, q.id));
+// ESOL: caffeine is very soluble (experimental logS about -0.9); celecoxib is poorly soluble; the estimate follows lipophilicity
+assert.ok(Math.abs(nm('Caffeine').esol - (-0.88)) < 0.4, 'caffeine ESOL near experiment'); assert.ok(nm('Celecoxib').esol < -4 && nm('Glucose').esol > 0);
+assert.equal(A.solClass(-1), 'very soluble'); assert.equal(A.solClass(-3), 'soluble'); assert.equal(A.solClass(-5), 'moderately soluble'); assert.equal(A.solClass(-7), 'poorly soluble');
+assert.equal(A.dissolves(nm('Caffeine'), 200), true); assert.equal(A.dissolves(nm('Atorvastatin'), 200), false);
+// egg: small greasy drugs in the yolk, polar ones in the white, tamoxifen (too greasy) and glucose (too polar) outside
+assert.equal(A.eggClass(nm('Diazepam')), 'yolk'); assert.equal(A.eggClass(nm('Fluoxetine')), 'yolk'); assert.equal(A.eggClass(nm('Atenolol')), 'white'); assert.equal(A.eggClass(nm('Furosemide')), 'white'); assert.equal(A.eggClass(nm('Glucose')), 'out'); assert.equal(A.eggClass(nm('Tamoxifen')), 'out');
+// Henderson-Hasselbalch
+assert.ok(Math.abs(A.fractionNeutral('acid', 4.4, 4.4) - 0.5) < 1e-9 && Math.abs(A.fractionNeutral('base', 9.5, 9.5) - 0.5) < 1e-9);
+assert.ok(A.fractionNeutral('acid', 4.4, 1.5) > 0.99 && A.fractionNeutral('acid', 4.4, 7.4) < 0.002 && A.fractionNeutral('base', 9.5, 6.8) < 0.01 && A.fractionNeutral('neutral', 0, 7) === 1);
+assert.ok(Math.abs(A.trapRatio('acid', 4.4, 1.5, 7.4) - (1 + 10 ** 3) / (1 + 10 ** -2.9)) < 1e-6); assert.ok(A.trapRatio('base', 9.5, 6.8, 7.4) < 1);
+// pharmacokinetics: AUC = F D / CL, Tmax formula, half-life falls the curve to half, accumulation, superposition
+const pk = { F: 0.9, D: 400, V: 9, ka: 2, ke: A.rateFromHalfLife(2) }, { tmax, cmax } = A.tmaxCmax(pk);
+assert.ok(Math.abs(A.clearance(9, 2) - 0.693147 * 9 / 2) < 1e-4); assert.ok(Math.abs(A.auc(pk) - pk.F * pk.D / A.clearance(9, 2)) < 1e-6);
+assert.ok(Math.abs(A.conc1(tmax, pk) - cmax) < 1e-9 && A.conc1(tmax + 0.01, pk) < cmax && A.conc1(tmax - 0.01, pk) < cmax && A.conc1(0, pk) === 0);
+assert.ok(cmax > 20 && cmax < 40, 'ibuprofen 400 mg peaks at about 25-35 mg/L');
+let t = 30; assert.ok(Math.abs(A.conc1(t + 2, { ...pk, ka: 50 }) / A.conc1(t, { ...pk, ka: 50 }) - 0.5) < 0.02, 'level halves each half-life');
+assert.ok(Math.abs(A.accumulation(A.rateFromHalfLife(4), 4) - 2) < 1e-9, 'dosing every half-life doubles the level at steady state');
+let area = 0; for (let x = 0; x < 200; x += 0.01) area += A.conc1(x, pk) * 0.01; assert.ok(Math.abs(area - A.auc(pk)) / A.auc(pk) < 0.01, 'numeric AUC matches F D / CL');
+const mean = tau => { let sum = 0, n = 0; for (let x = 60; x < 84; x += 0.1) { sum += A.concMulti(x, pk, tau, 12); n++; } return sum / n; };
+assert.ok(mean(8) > 2 * mean(24), 'dosing more often gives a higher average level'); assert.ok(Math.abs(mean(8) - A.avgSteady(pk, 8)) / A.avgSteady(pk, 8) < 0.03, 'average level at steady state = F D / (CL tau)');
+aT.pk.presets.forEach(p => { const q = { F: p.F, D: p.dose, V: p.V, ka: p.ka, ke: A.rateFromHalfLife(p.tHalf) }; assert.ok(A.tmaxCmax(q).cmax > 0 && A.tmaxCmax(q).tmax < 8, p.name); });
+// soft spots: celecoxib has an aromatic methyl, aspirin an ester, caffeine N-methyls, paracetamol a phenol
+assert.ok(A.spotTypes(nm('Celecoxib')).includes('arCH3') && A.spotTypes(nm('Aspirin')).includes('ester') && A.spotTypes(nm('Caffeine')).includes('NCH3') && A.spotTypes(nm('Paracetamol')).includes('phenol') && A.spotTypes(nm('Naproxen')).includes('OCH3'));
+for (const d of ad) d.spots.forEach(s => assert.ok(s.atom >= 0 && s.atom < d.atoms.length && aT.metab.classes[s.type], d.name));
+Object.keys(aT.metab.routes).forEach(n => assert.ok(nm(n), n));
+aT.decide.candidates.forEach(n => assert.ok(nm(n), n)); aT.ion.drugs.forEach(d => assert.ok(nm(d.name), d.name));
+assert.ok(A.reportCard(nm('Atorvastatin')).passed < A.reportCard(nm('Celecoxib')).passed);
+console.log('ADME data and maths OK');

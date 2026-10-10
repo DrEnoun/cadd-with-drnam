@@ -1,0 +1,257 @@
+{
+ "_about": "Teaching text and typical literature values for Module 3 (ADME). pKa and pharmacokinetic values are rounded typical adult values for illustration: check them against a standard reference before publication.",
+ "stages": [
+  {
+   "id": "A",
+   "name": "Absorption",
+   "organ": "Stomach and small intestine",
+   "text": "The drug must dissolve and then cross the gut wall into the blood. Poor solubility, ionisation and too much polarity all reduce absorption.",
+   "fail": "Never reaches the blood in useful amounts, so it cannot work when swallowed."
+  },
+  {
+   "id": "D",
+   "name": "Distribution",
+   "organ": "Blood and tissues",
+   "text": "The blood carries the drug around the body, here to the brain and to a muscle. Some drug sticks to plasma proteins, some enters tissues, and only a few drugs cross the blood-brain barrier.",
+   "fail": "Does not reach the site of action, or reaches places where it should not (side effects)."
+  },
+  {
+   "id": "M",
+   "name": "Metabolism",
+   "organ": "Liver",
+   "text": "Liver enzymes (mostly the cytochrome P450 family, CYP, the green blobs) change the drug. Phase I reactions add or reveal a polar group; phase II reactions attach a sugar or sulfate so the drug is easier to remove. Blood from the gut goes to the liver first (the portal vein), so part of an oral dose is already attacked on this \"first pass\". The liver is visited again later, every time the blood passes through it.",
+   "fail": "Destroyed too fast (short action), or turned into a toxic metabolite."
+  },
+  {
+   "id": "E",
+   "name": "Excretion",
+   "organ": "Kidneys (and bile)",
+   "text": "The kidneys filter the blood and remove the drug and its orange metabolites in the urine, which collects in the bladder. How fast this happens sets the half-life and how often you must dose.",
+   "fail": "Removed too fast (needs frequent dosing) or too slowly (builds up and becomes toxic)."
+  }
+ ],
+ "match": {
+  "failures": [
+   {
+    "id": "f1",
+    "text": "A tablet is swallowed but almost none of it reaches the bloodstream because the compound does not dissolve.",
+    "answer": "A",
+    "why": "Dissolving and crossing the gut wall are absorption problems."
+   },
+   {
+    "id": "f2",
+    "text": "A drug works in the lab but never reaches the brain, where its target is.",
+    "answer": "D",
+    "why": "Getting to the right place, including crossing the blood-brain barrier, is distribution."
+   },
+   {
+    "id": "f3",
+    "text": "A drug is cleared by the liver so quickly that its effect lasts less than an hour.",
+    "answer": "M",
+    "why": "Chemical breakdown by liver enzymes is metabolism."
+   },
+   {
+    "id": "f4",
+    "text": "A drug builds up in a patient with kidney disease and causes toxicity.",
+    "answer": "E",
+    "why": "The kidneys are the main route of excretion; if they work poorly the drug stays too long."
+   }
+  ]
+ },
+ "ion": {
+  "_about": "Typical pKa values (rounded). kind: acid loses a proton above its pKa; base gains one below its pKa.",
+  "drugs": [
+   {
+    "name": "Aspirin",
+    "kind": "acid",
+    "pKa": 3.5
+   },
+   {
+    "name": "Ibuprofen",
+    "kind": "acid",
+    "pKa": 4.4
+   },
+   {
+    "name": "Naproxen",
+    "kind": "acid",
+    "pKa": 4.2
+   },
+   {
+    "name": "Diclofenac",
+    "kind": "acid",
+    "pKa": 4.0
+   },
+   {
+    "name": "Propranolol",
+    "kind": "base",
+    "pKa": 9.5
+   },
+   {
+    "name": "Atenolol",
+    "kind": "base",
+    "pKa": 9.6
+   },
+   {
+    "name": "Fluoxetine",
+    "kind": "base",
+    "pKa": 9.8
+   },
+   {
+    "name": "Caffeine",
+    "kind": "neutral",
+    "pKa": null
+   }
+  ]
+ },
+ "metab": {
+  "_about": "Main metabolic routes from standard references, simplified. The soft-spot finder does not cover every route (for example aromatic ring hydroxylation), so it is a guide.",
+  "routes": {
+   "Celecoxib": "The tolyl methyl group is hydroxylated (mainly CYP2C9), then oxidised to a carboxylic acid.",
+   "Ibuprofen": "The isobutyl chain is oxidised (CYP2C9) and the carboxylic acid is conjugated with glucuronic acid.",
+   "Naproxen": "The methoxy group is removed (O-demethylation) and the acid is conjugated with glucuronic acid.",
+   "Diclofenac": "An aromatic ring is hydroxylated (CYP2C9, at the 4' position) and the acid is conjugated with glucuronic acid.",
+   "Caffeine": "The N-methyl groups are removed (N-demethylation), mainly by CYP1A2.",
+   "Aspirin": "The ester is hydrolysed by esterases to salicylic acid, which is then conjugated.",
+   "Paracetamol": "Mostly conjugated at the phenol OH (glucuronide and sulfate). A small part is oxidised (CYP2E1) to a toxic metabolite, NAPQI.",
+   "Propranolol": "The naphthalene ring is hydroxylated (CYP2D6) and the isopropyl group is removed by N-dealkylation (CYP1A2), plus glucuronidation.",
+   "Fluoxetine": "The N-methyl group is removed (CYP2D6) to give norfluoxetine, which is also active.",
+   "Warfarin": "An aromatic ring is hydroxylated (mainly CYP2C9, 7-hydroxylation)."
+  },
+  "classes": {
+   "arCH3": {
+    "title": "Aromatic methyl",
+    "phase": "I",
+    "text": "A methyl on a ring is easily oxidised to CH2OH and then to a carboxylic acid (benzylic hydroxylation)."
+   },
+   "OCH3": {
+    "title": "Methoxy on a ring",
+    "phase": "I",
+    "text": "The O-CH3 can be removed (O-demethylation), leaving a phenol."
+   },
+   "NCH3": {
+    "title": "N-methyl",
+    "phase": "I",
+    "text": "N-CH3 groups are removed (N-demethylation) by CYP enzymes."
+   },
+   "Nalkyl": {
+    "title": "Carbon next to an amine N",
+    "phase": "I",
+    "text": "N-dealkylation: an alkyl group next to an amine nitrogen is removed."
+   },
+   "benzyl": {
+    "title": "Benzylic CH or CH2",
+    "phase": "I",
+    "text": "A carbon next to an aromatic ring is oxidised (hydroxylated) easily."
+   },
+   "ester": {
+    "title": "Ester",
+    "phase": "I",
+    "text": "Esterases in blood and liver cut the ester (hydrolysis) into an acid and an alcohol."
+   },
+   "acid": {
+    "title": "Carboxylic acid",
+    "phase": "II",
+    "text": "Conjugated with glucuronic acid (glucuronidation) to make a very water-soluble product that the kidney removes."
+   },
+   "phenol": {
+    "title": "Phenol OH",
+    "phase": "II",
+    "text": "Conjugated with glucuronic acid or sulfate, making the drug easier to excrete."
+   }
+  }
+ },
+ "pk": {
+  "_about": "Typical adult values, rounded, for teaching. F = fraction reaching the blood, V = volume of distribution (L), tHalf = half-life (h), ka = absorption rate (1/h). Check against a standard reference before publication.",
+  "presets": [
+   {
+    "name": "Ibuprofen",
+    "dose": 400,
+    "tau": 8,
+    "F": 0.9,
+    "V": 9,
+    "tHalf": 2,
+    "ka": 2,
+    "note": "Fast absorption and a short half-life, so it is taken several times a day."
+   },
+   {
+    "name": "Paracetamol",
+    "dose": 500,
+    "tau": 6,
+    "F": 0.85,
+    "V": 63,
+    "tHalf": 2,
+    "ka": 2,
+    "note": "Large volume of distribution and a short half-life."
+   },
+   {
+    "name": "Caffeine",
+    "dose": 200,
+    "tau": 8,
+    "F": 1.0,
+    "V": 42,
+    "tHalf": 5,
+    "ka": 3,
+    "note": "Almost completely absorbed, with a half-life of about 5 hours."
+   },
+   {
+    "name": "Celecoxib",
+    "dose": 200,
+    "tau": 12,
+    "F": 1.0,
+    "V": 400,
+    "tHalf": 11,
+    "ka": 0.8,
+    "note": "A very large apparent volume (V/F about 400 L) and a long half-life: slow to rise and slow to leave. For celecoxib the absolute bioavailability is not known, so F and V are combined into one apparent volume."
+   },
+   {
+    "name": "Naproxen",
+    "dose": 500,
+    "tau": 12,
+    "F": 0.95,
+    "V": 11,
+    "tHalf": 14,
+    "ka": 1.5,
+    "note": "Long half-life, so twice a day is enough."
+   }
+  ]
+ },
+ "decide": {
+  "candidates": [
+   "Celecoxib",
+   "Rofecoxib",
+   "Indomethacin",
+   "Atorvastatin",
+   "Tamoxifen",
+   "Glucose",
+   "Quercetin",
+   "Hydrochlorothiazide"
+  ],
+  "nextSteps": [
+   {
+    "id": "n1",
+    "text": "Measure solubility and permeability in the lab (for example a solubility assay and a Caco-2 or PAMPA permeability test).",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Test metabolic stability in liver microsomes or hepatocytes.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Run a small animal pharmacokinetic study before any human work.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Treat the predictions as final because they came from software.",
+    "right": false
+   },
+   {
+    "id": "n5",
+    "text": "Skip ADME tests because the compound binds the target very strongly.",
+    "right": false
+   }
+  ]
+ }
+}
