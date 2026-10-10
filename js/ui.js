@@ -33,7 +33,7 @@ export function download(name, text, type = 'text/plain') {
 export const feedback = (kind, title, body) => h('div', { class: `fb ${kind}`, role: 'status' }, h('strong', {}, title), body ? h('div', {}, body) : null);
 
 /** A responsive picture from assets/img (name.webp 1600 px wide, name-800.webp 800 px). Decorative when alt is empty. */
-export function art(name, alt = '', { eager = false, sizes = '(max-width: 700px) 100vw, 50vw', cls = '' } = {}) {
-  return h('img', { class: `art ${cls}`.trim(), src: `assets/img/${name}.webp`, srcset: `assets/img/${name}-800.webp 800w, assets/img/${name}.webp 1600w`, sizes, alt, width: 1600, height: 900,
+export function art(name, alt = '', { eager = false, sizes = '(max-width: 700px) 100vw, 50vw', cls = '', small = 800, full = 1600, ratio = 900 / 1600 } = {}) {
+  return h('img', { class: `art ${cls}`.trim(), src: `assets/img/${name}.webp`, srcset: `assets/img/${name}-${small}.webp ${small}w, assets/img/${name}.webp ${full}w`, sizes, alt, width: full, height: Math.round(full * ratio),
     loading: eager ? 'eager' : 'lazy', decoding: 'async', fetchpriority: eager ? 'high' : null, 'aria-hidden': alt ? null : 'true' });
 }
