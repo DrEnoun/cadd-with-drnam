@@ -1,0 +1,65 @@
+{
+ "_about": "Pre/post concept test for Module 1. 'answer' is the index of the correct option. The same questions are used before and after so gains can be compared. Check the science before using with students.",
+ "questions": [
+  { "id": "q1", "q": "What is the main purpose of molecular docking?", "options": [
+     "To predict how a small molecule binds to a target and estimate how strongly",
+     "To measure the real binding affinity in the laboratory",
+     "To synthesise new compounds",
+     "To determine the 3D structure of a protein from its sequence"], "answer": 0,
+    "why": "Docking predicts the binding pose (where and how) and gives an estimated score for binding strength. It does not replace laboratory measurement." },
+  { "id": "q2", "q": "What does a docking program need to do in every run?", "options": [
+     "Search for possible poses, then score and rank them",
+     "Only calculate the molecular weight of the ligand",
+     "Only draw the protein surface",
+     "Predict the half-life of the ligand in the body"], "answer": 0,
+    "why": "Docking = a search algorithm that generates poses + a scoring function that ranks them." },
+  { "id": "q3", "q": "A scoring function estimates...", "options": [
+     "the binding free energy (an approximation) so poses and ligands can be ranked",
+     "the exact experimental Kd",
+     "the toxicity of the ligand",
+     "the number of atoms in the ligand"], "answer": 0,
+    "why": "Scoring functions are fast approximations of binding free energy. They rank better than they predict exact values." },
+  { "id": "q4", "q": "Before docking a large library, you re-dock the original (co-crystal) ligand. Why?", "options": [
+     "To check that the protocol can reproduce the known pose (RMSD about 2 Å or less)",
+     "To increase the scores of all compounds",
+     "To make the protein more flexible",
+     "To remove the need for experiments"], "answer": 0,
+    "why": "Redocking validates the setup (preparation, box, settings). If the known pose cannot be reproduced, the results for new ligands are not trustworthy." },
+  { "id": "q5", "q": "The docking score of compound X is -9.5 and of compound Y is -7.0 (same program). What does this suggest?", "options": [
+     "X is predicted to bind more strongly, but this must be checked with poses, interactions and experiments",
+     "X is certainly 2.5 times more active than Y",
+     "Y is certainly inactive",
+     "The scores cannot be compared at all"], "answer": 0,
+    "why": "A more negative score predicts stronger binding, but scores are approximate. Treat them as a ranking guide, not as proof." },
+  { "id": "q6", "q": "What can happen if the search box (grid box) is too small?", "options": [
+     "Parts of the ligand or pocket fall outside the box, so the correct pose cannot be found",
+     "The calculation becomes more accurate",
+     "The protein is removed",
+     "Nothing, the program always expands the box"], "answer": 0,
+    "why": "The search only explores inside the box. If it clips the pocket, the true pose is impossible to find." },
+  { "id": "q7", "q": "Which is a real limitation of most docking?", "options": [
+     "The protein is usually treated as rigid or only partly flexible, and scoring functions are approximate",
+     "It can only be used for proteins from humans",
+     "It cannot handle ligands with more than 3 atoms",
+     "It always gives the same score for every ligand"], "answer": 0,
+    "why": "Receptor flexibility, water, entropy and solvation are hard to model, so docking results always need critical analysis and experimental confirmation." },
+  { "id": "q8", "q": "After docking, which should you inspect for the top pose?", "options": [
+     "Hydrogen bonds, hydrophobic contacts and other interactions with key residues, plus clashes",
+     "Only the colour of the ligand",
+     "Only the file size of the output",
+     "Only the order in which compounds were docked"], "answer": 0,
+    "why": "A good pose makes sensible, chemically meaningful interactions (especially with key residues) and has no clashes. The score alone is not enough." },
+  { "id": "q9", "q": "Ligand P has a Kd of 50 nM and ligand Q has a Kd of 5 µM. Which has the more negative binding free energy (ΔG)?", "options": [
+     "P, because a smaller Kd means tighter binding",
+     "Q, because a larger Kd means tighter binding",
+     "They are equal",
+     "It cannot be related to Kd"], "answer": 0,
+    "why": "ΔG = RT ln Kd. A smaller Kd gives a more negative ΔG, which means tighter binding." },
+  { "id": "q10", "q": "Compound Z has the best docking score, but its pose sits mostly outside the pocket and touches none of the key residues. What should you do?", "options": [
+     "Be cautious: check the pose and the protocol before calling it a hit",
+     "Choose it immediately, the score is the best",
+     "Increase its score manually",
+     "Ignore the pose and only report the score"], "answer": 0,
+    "why": "A high score with a poor pose is a warning sign (for example a large, greasy molecule inflating the score). Always check the pose and interactions." }
+ ]
+}
