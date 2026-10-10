@@ -26,6 +26,11 @@ export const PERCEPTION = {
     'This module helped me understand how to read ADME predictions and what they cannot tell us.',
     'I feel more confident to learn ADME prediction software after this module.',
   ],
+  homology: [
+    'This module helped me understand why we build protein models.',
+    'This module helped me understand how to choose a template and judge how far to trust a model.',
+    'I feel more confident to learn homology modelling software after this module.',
+  ],
   screening: [
     'This module helped me understand why we screen compound libraries on the computer.',
     'This module helped me understand how to judge whether a screen worked and choose hits.',

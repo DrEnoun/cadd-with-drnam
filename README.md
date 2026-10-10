@@ -26,6 +26,11 @@ Pre-test → The journey (an animated 3D body based on the four-panel overview p
 
 **Real data:** the 45 drugs and their 3D shapes are the same as Module 2. cLogP (Crippen), polar surface area, ESOL solubility and the soft-spot atoms are computed with RDKit (`python3 tools/prepare-adme.py`). **Simplified or typical values:** the egg ellipses are a teaching approximation of the BOILED-Egg (Daina and Zoete, 2016), not the published model; the soft-spot finder uses simple structural rules; pKa values and pharmacokinetic values (F, V, half-life, ka) are rounded typical adult figures (`data/adme/teaching.json`). Please check them against a standard reference before publication. The pharmacokinetic maths (one-compartment oral model, AUC = F·D/CL, accumulation) is tested in `npm test`.
 
+## Module 4 — Homology Modelling
+Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate templates: GluA3 (3O21, 3P3W, 6FLR) and two unrelated proteins (1AKE, 3MHT). Steps: why model (Chothia-Lesk curve, 3D overlay) → choose a template → align (Gotoh affine gaps, BLOSUM62) → build a C-alpha model → validate (Ramachandran, environment check, expected error, reveal the true structure) → decide and download a report.
+- Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
+- Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
+
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
 - **Pre-test and post-test** with the same 10 concept questions (`data/docking/quiz.json`), with explanations after the post-test.
