@@ -1,0 +1,108 @@
+{
+ "_about": "Teaching text for Module 5 (network pharmacology). Check the science before use with students.",
+ "why": {
+  "questions": [
+   {
+    "id": "w1",
+    "q": "Why is a network picture useful for a drug that binds several proteins?",
+    "options": [
+     "It shows every protein the drug touches together with the disease genes, so the overlap and the connections become visible",
+     "It proves which protein causes the disease",
+     "It replaces the need for experiments",
+     "It makes docking unnecessary"
+    ],
+    "answer": 0,
+    "why": "A network gathers many targets and many disease genes on one map. It generates hypotheses about where they meet. It proves nothing by itself."
+   },
+   {
+    "id": "w2",
+    "q": "Celecoxib is designed to block COX-2. What does polypharmacology mean for it?",
+    "options": [
+     "It may also affect other proteins, which can add benefits or side effects",
+     "It can only ever bind COX-2",
+     "It works only when combined with other drugs",
+     "It means the drug is impure"
+    ],
+    "answer": 0,
+    "why": "Most drugs bind more than one protein. These extra targets can explain unexpected effects, good or bad."
+   },
+   {
+    "id": "w3",
+    "q": "What are 'candidate targets' in this workflow?",
+    "options": [
+     "Genes that appear in both the drug-target list and the disease-gene list",
+     "Any gene with a high probability from one tool",
+     "The genes with the most publications",
+     "Genes listed in only the disease database"
+    ],
+    "answer": 0,
+    "why": "The overlap of the two lists is the starting set. Both the link to the drug and the link to the disease are needed."
+   }
+  ]
+ },
+ "hubs": {
+  "q": "A protein has the highest degree in your network. What is the best way to treat it?",
+  "options": [
+   "As a lead to test: it may be central, or simply well studied, so check betweenness, evidence and then experiments",
+   "As the proven main target of the drug",
+   "As the first protein to drop because hubs are usually noise",
+   "As a sign the network is wrong"
+  ],
+  "answer": 0,
+  "why": "Hubs are good leads, but well-studied proteins have more recorded interactions, and a drug effect on a hub is not guaranteed. Combine the measures and test in the lab."
+ },
+ "decide": {
+  "claims": [
+   {
+    "id": "c1",
+    "text": "The network is a computer-based hypothesis about targets and pathways that must be tested in experiments.",
+    "ok": true,
+    "why": "This is the honest statement. Predictions, scores and thresholds all carry uncertainty."
+   },
+   {
+    "id": "c2",
+    "text": "The network proves how celecoxib works against inflammation.",
+    "ok": false,
+    "why": "A network cannot prove a mechanism. It was built from predictions and records, and thresholds and background change the result."
+   },
+   {
+    "id": "c3",
+    "text": "The hub proteins are the targets of celecoxib.",
+    "ok": false,
+    "why": "A hub is central in the network. It is not necessarily bound by the drug, and not necessarily a drug target at all."
+   }
+  ],
+  "next": [
+   {
+    "id": "n1",
+    "text": "Measure whether celecoxib changes the level or activity of the chosen proteins or their pathway in cells (for example by Western blot or ELISA).",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Include a positive control: a protein or pathway with known evidence for celecoxib.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Dock celecoxib into the chosen targets and check whether the poses are stable (Modules 1 and 4 logic), keeping in mind that docking also needs checking.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Compare with a second source of data (another database or another prediction tool) and see where they disagree.",
+    "right": true
+   },
+   {
+    "id": "n5",
+    "text": "Publish the network as proof of mechanism, because the p-values were significant.",
+    "right": false
+   },
+   {
+    "id": "n6",
+    "text": "Skip experiments, because the hubs were enriched in inflammation pathways.",
+    "right": false
+   }
+  ]
+ }
+}

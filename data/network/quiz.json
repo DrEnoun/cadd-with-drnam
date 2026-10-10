@@ -1,0 +1,125 @@
+{
+ "_about": "Pre/post concept test for Module 5 (network pharmacology). 'answer' is the index of the correct option. Check the science before using with students.",
+ "questions": [
+  {
+   "id": "q1",
+   "q": "What does a drug-target network show that docking one protein does not?",
+   "options": [
+    "The exact binding energy",
+    "All the proteins a drug may affect, and how they connect with the disease",
+    "The crystal structure of the target",
+    "The half-life of the drug"
+   ],
+   "answer": 1,
+   "why": "Docking looks at one protein at a time. A network widens the view to many proteins and pathways."
+  },
+  {
+   "id": "q2",
+   "q": "What is polypharmacology?",
+   "options": [
+    "A drug acting on several targets",
+    "Taking several drugs together",
+    "A drug made of several chemicals",
+    "A drug with several doses"
+   ],
+   "answer": 0,
+   "why": "The word describes one molecule affecting many proteins."
+  },
+  {
+   "id": "q3",
+   "q": "In the workflow, the 'candidate targets' are:",
+   "options": [
+    "The genes with the highest degree",
+    "The genes found in both the drug-target list and the disease-gene list",
+    "All genes in the disease list",
+    "Genes with a binding energy below -7"
+   ],
+   "answer": 1,
+   "why": "The overlap is the first filter. Hubs and pathways come later."
+  },
+  {
+   "id": "q4",
+   "q": "A prediction tool gives a target a probability of 0.000. How should it be treated?",
+   "options": [
+    "As a certain target",
+    "As noise, not a real prediction",
+    "As the strongest target",
+    "As proof the drug is inactive"
+   ],
+   "answer": 1,
+   "why": "A score of zero means the tool found no support. It is not evidence for or against binding."
+  },
+  {
+   "id": "q5",
+   "q": "Using a very strict score cut-off for targets can:",
+   "options": [
+    "Make the network more complete",
+    "Remove real targets that happen to have low scores",
+    "Always improve accuracy",
+    "Add more false links"
+   ],
+   "answer": 1,
+   "why": "Thresholds trade false positives for false negatives. Unusual compounds often score low even when they bind."
+  },
+  {
+   "id": "q6",
+   "q": "What does the interaction confidence cut-off (for example 0.7) decide?",
+   "options": [
+    "How many proteins the drug binds",
+    "Which interactions you believe enough to draw",
+    "The binding energy",
+    "The size of the proteins"
+   ],
+   "answer": 1,
+   "why": "A low cut-off gives a dense, speculative network. A high cut-off gives a sparse one."
+  },
+  {
+   "id": "q7",
+   "q": "A protein has a very high betweenness. What does it mean?",
+   "options": [
+    "It has the most links",
+    "It lies on many shortest paths between other proteins, like a bridge",
+    "It binds the drug most tightly",
+    "It is the least studied protein"
+   ],
+   "answer": 1,
+   "why": "Betweenness measures bridging. Degree counts links. They need not agree."
+  },
+  {
+   "id": "q8",
+   "q": "Why can well-studied proteins look like hubs?",
+   "options": [
+    "They really have more interactions in the cell",
+    "More experiments exist for them, so more interactions have been recorded",
+    "They are bigger proteins",
+    "They are always drug targets"
+   ],
+   "answer": 1,
+   "why": "Study bias is a known problem of interaction databases. A hub may simply be a popular protein."
+  },
+  {
+   "id": "q9",
+   "q": "Why are p-values corrected (for example Benjamini-Hochberg) in pathway enrichment?",
+   "options": [
+    "The test is always wrong",
+    "Many pathways are tested at once, so some will look significant by chance",
+    "To make results look better",
+    "Because the sample is too large"
+   ],
+   "answer": 1,
+   "why": "The more tests you run, the more false positives appear. The correction controls this."
+  },
+  {
+   "id": "q10",
+   "q": "A network analysis ends with a significant pathway. What is the best conclusion?",
+   "options": [
+    "The mechanism is proven",
+    "A hypothesis to test in experiments",
+    "The drug is safe",
+    "No more work is needed"
+   ],
+   "answer": 1,
+   "why": "Network pharmacology generates hypotheses. Confirmation needs laboratory data."
+  }
+ ]
+}
