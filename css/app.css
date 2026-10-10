@@ -225,3 +225,11 @@ select option { background: #ffffff; color: #231f20; }
 .stagechip b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--c); color: #0a1628; font-size: 15px; }
 .stagechip.is-on { background: var(--c); color: #0a1628; } .stagechip.is-on b { background: #0a1628; color: var(--c); }
 @media (max-width: 560px) { .stagechip { font-size: 0; gap: 0; padding: 4px; } .stagechip b { font-size: 15px; } }
+
+/* Module 4: alignment view */
+.alnview { overflow-x: auto; background: #fff; color: #1a2233; border-radius: 12px; padding: 10px; margin-top: 8px; }
+.alnblock { margin-bottom: 12px; min-width: max-content; }
+.aln { display: flex; font: 600 13px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+.aln span { width: 14px; text-align: center; color: #101827; }
+.ssstrip { display: flex; height: 5px; margin-bottom: 2px; }
+.ssstrip span { width: 14px; }

@@ -119,3 +119,25 @@ Object.keys(aT.metab.routes).forEach(n => assert.ok(nm(n), n));
 aT.decide.candidates.forEach(n => assert.ok(nm(n), n)); aT.ion.drugs.forEach(d => assert.ok(nm(d.name), d.name));
 assert.ok(A.reportCard(nm('Atorvastatin')).passed < A.reportCard(nm('Celecoxib')).passed);
 console.log('ADME data and maths OK');
+
+// ---------- Module 4: homology modelling
+import * as H from '../js/modules/homology/stats.js';
+const hs = J('data/homology/structures.json'), hT = J('data/homology/teaching.json'), hq = J('data/homology/quiz.json').questions, HS = hs.structures, tg = HS.target;
+for (const k of Object.keys(HS)) { const x = HS[k]; assert.ok(x.seq.length === x.ca.length && x.ss.length === x.seq.length && x.burial.length === x.seq.length, k); }
+assert.ok(H.score('A', 'A') === 4 && H.score('W', 'W') === 11 && H.score('A', 'R') === -1);
+const sa = H.align('HEAGAWGHEE', 'PAWHEAE'); assert.ok(sa.qa.length === sa.ta.length && sa.qa.replace(/-/g, '') === 'HEAGAWGHEE' && sa.ta.replace(/-/g, '') === 'PAWHEAE', 'alignment keeps both sequences');
+const sf = H.align('ACDEFGHIK', 'ACDEFGHIK'); assert.ok(sf.pairs.length === 9 && sf.qa === sf.ta);
+const a1 = H.align(tg.seq, HS.t1.seq), st1 = H.alignStats(tg.seq, HS.t1.seq, a1.pairs);
+assert.ok(st1.identity > .55 && st1.identity < .62 && st1.coverage > .95 && H.alignAccuracy(a1.pairs, HS.t1.refAlign) > .9, 'GluA2/GluA3 about 59% identical');
+assert.ok(H.alignStats(tg.seq, HS.t4.seq, H.align(tg.seq, HS.t4.seq).pairs).identity < .25, 'unrelated protein has low identity');
+// superposition: rotate and shift points, then recover them
+const P = [[0, 0, 0], [3, 0, 0], [0, 4, 1], [1, 1, 5], [2, -3, 2]], rot = p => [-p[1] + 5, p[0] - 2, p[2] + 1], f = H.superpose(P, P.map(rot)); assert.ok(H.rmsd(P.map(f), P.map(rot)) < 1e-6, 'superpose recovers a rigid move');
+const m1 = H.buildModel(tg, HS.t1, a1.pairs); assert.ok(m1.ca.length === tg.seq.length && m1.ca.every(c => c && c.every(Number.isFinite)));
+const c1 = H.compareToTruth(m1, tg, a1.pairs.map(p => p[0])), c4 = H.compareToTruth(H.buildModel(tg, HS.t4, H.align(tg.seq, HS.t4.seq).pairs), tg, H.align(tg.seq, HS.t4.seq).pairs.map(p => p[0]));
+assert.ok(c1.rmsd > .8 && c1.rmsd < 4 && c4.rmsd > 10, `related ${c1.rmsd} vs unrelated ${c4.rmsd}`);
+const q1 = H.quality(tg, HS.t1, a1.pairs, hs.rama, tg); assert.ok(q1.rama.favoured > .9 && q1.env.score > .5);
+assert.ok(Math.abs(H.expectedRmsd(1) - .4) < 1e-9 && H.expectedRmsd(.3) > H.expectedRmsd(.6));
+assert.ok(hs.rama[Math.floor((-45 + 180) / 10)][Math.floor((-60 + 180) / 10)] === 2 && H.ramaClass(hs.rama, -60, -45) === 2, 'alpha helix angles are favoured');
+hT.why.scenarios.forEach(s => assert.ok(hT.why.approaches.some(a => a.id === s.answer)));
+hq.forEach(q => assert.ok(q.options.length >= 3 && q.options[q.answer] != null && q.why, q.id));
+console.log('Homology data and maths OK');

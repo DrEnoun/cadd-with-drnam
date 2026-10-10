@@ -1,0 +1,125 @@
+{
+ "_about": "Pre/post concept test for Module 4 (homology modelling). 'answer' is the index of the correct option. Check the science before using with students.",
+ "questions": [
+  {
+   "id": "q1",
+   "q": "What is homology modelling?",
+   "options": [
+    "Building a 3D model of a protein from its sequence using the known structure of a related protein as a template",
+    "Measuring the structure of a protein in the lab",
+    "Docking a drug into a protein",
+    "Predicting a drug's half-life"
+   ],
+   "answer": 0,
+   "why": "Related proteins fold in similar ways, so a known structure can be used as a pattern for a protein whose structure is unknown."
+  },
+  {
+   "id": "q2",
+   "q": "The basic idea behind homology modelling is that…",
+   "options": [
+    "protein structure is conserved more than sequence during evolution",
+    "sequence is conserved more than structure",
+    "unrelated proteins share the same structure",
+    "all proteins have the same structure"
+   ],
+   "answer": 0,
+   "why": "Sequences can drift a lot while the fold stays almost the same, so similar sequences mean similar 3D shapes."
+  },
+  {
+   "id": "q3",
+   "q": "Roughly what sequence identity between target and template usually allows a reliable model?",
+   "options": [
+    "Above about 40%",
+    "About 5%",
+    "Exactly 100% only",
+    "Any value works the same"
+   ],
+   "answer": 0,
+   "why": "Above about 40% identity the models are usually reliable in the core. Between 30% and 40% you must be careful, and below 30% the alignment itself becomes unreliable."
+  },
+  {
+   "id": "q4",
+   "q": "Which factor should you check when choosing between two templates with similar sequence identity?",
+   "options": [
+    "Experimental resolution, coverage and whether it is in the right state",
+    "The length of the file name",
+    "The colour of the picture",
+    "The year the protein was named"
+   ],
+   "answer": 0,
+   "why": "A higher-resolution structure that covers the whole target and is in the form you need makes a better template."
+  },
+  {
+   "id": "q5",
+   "q": "Why is the sequence alignment of target and template so important?",
+   "options": [
+    "Every residue is placed using the alignment, so alignment errors become structure errors",
+    "It decides the colour of the model",
+    "It is the last step and does not affect the model",
+    "It only affects the file size"
+   ],
+   "answer": 0,
+   "why": "The model copies positions from the template through the alignment. A shifted alignment places the wrong residues in the wrong places."
+  },
+  {
+   "id": "q6",
+   "q": "Where should gaps normally be placed in an alignment?",
+   "options": [
+    "In loops, not inside helices or strands",
+    "Inside helices",
+    "Inside strands",
+    "Anywhere, it does not matter"
+   ],
+   "answer": 0,
+   "why": "Helices and strands are the stable core. Loops tolerate insertions and deletions."
+  },
+  {
+   "id": "q7",
+   "q": "A model's backbone angles all fall in the favoured Ramachandran regions. Does this prove the model is correct?",
+   "options": [
+    "No. A wrong template or alignment can still give tidy angles",
+    "Yes, it proves the model is correct",
+    "Yes, but only for helices",
+    "It proves the alignment is perfect"
+   ],
+   "answer": 0,
+   "why": "Copying a real backbone gives realistic angles even when it is the wrong protein. You must also check the template choice, the alignment and the environment of the residues."
+  },
+  {
+   "id": "q8",
+   "q": "Which kind of residue is usually found buried in the core of a protein?",
+   "options": [
+    "Hydrophobic residues such as leucine, isoleucine and valine",
+    "Charged residues such as aspartate and lysine",
+    "Water",
+    "Sugars"
+   ],
+   "answer": 0,
+   "why": "Hydrophobic residues hide from water in the core. A charged residue buried in the core in a model is a warning sign."
+  },
+  {
+   "id": "q9",
+   "q": "After building a model, what should you do before using it for docking or design?",
+   "options": [
+    "Validate it (backbone angles, residue environment, comparison with other models) and think about its limits",
+    "Nothing, it is ready",
+    "Delete the template",
+    "Increase the resolution number"
+   ],
+   "answer": 0,
+   "why": "Models contain errors. Validation shows where they are likely to be, and the binding site needs special care."
+  },
+  {
+   "id": "q10",
+   "q": "What does a CA RMSD of 1.3 Å between a model and the true structure mean?",
+   "options": [
+    "On average, the C-alpha atoms of the model are about 1.3 Å away from the true positions",
+    "The model is 1.3% correct",
+    "The model has 1.3 helices",
+    "The protein is 1.3 Å wide"
+   ],
+   "answer": 0,
+   "why": "RMSD is the average distance (as a root mean square) between matching atoms after the best superposition. Smaller is better."
+  }
+ ]
+}

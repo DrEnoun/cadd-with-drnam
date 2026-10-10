@@ -1,0 +1,140 @@
+{
+ "_about": "Teaching text for Module 4 (homology modelling). The structures are real (data/homology/structures.json, from the Protein Data Bank); the model is a simplified C-alpha model made by copying the template backbone.",
+ "target": {
+  "name": "GluA2 N-terminal domain (rat)",
+  "pdb": "3HSY",
+  "about": "The N-terminal domain (NTD) of an AMPA-type glutamate receptor subunit. AMPA receptors carry most fast excitatory signalling in the brain and are targets for drugs against epilepsy and other conditions."
+ },
+ "why": {
+  "approaches": [
+   {
+    "id": "exp",
+    "text": "Use the experimental structure (X-ray, cryo-EM or NMR)"
+   },
+   {
+    "id": "hm",
+    "text": "Homology modelling from a related protein with a known structure"
+   },
+   {
+    "id": "dl",
+    "text": "A deep-learning prediction (for example AlphaFold), then check its confidence"
+   },
+   {
+    "id": "md",
+    "text": "Molecular dynamics simulation"
+   }
+  ],
+  "scenarios": [
+   {
+    "id": "s1",
+    "text": "The structure of your target is already in the Protein Data Bank at 2 Å resolution.",
+    "answer": "exp",
+    "why": "An experimental structure is the best starting point. Models and predictions are for when there is none."
+   },
+   {
+    "id": "s2",
+    "text": "No structure exists for your target, but a protein with 55% identical sequence has one.",
+    "answer": "hm",
+    "why": "Above about 40% identity the fold is conserved, so a model built on the related structure is usually reliable in the core."
+   },
+   {
+    "id": "s3",
+    "text": "No structure and no close relative exist, but you can run or download a predicted structure with per-residue confidence scores.",
+    "answer": "dl",
+    "why": "Deep-learning predictors have changed this field. Always read the confidence (for example pLDDT) before you trust a region."
+   },
+   {
+    "id": "s4",
+    "text": "You already have a good structure and want to know how a flexible loop moves over microseconds.",
+    "answer": "md",
+    "why": "Molecular dynamics follows motion over time. It needs a good starting structure and does not create one."
+   }
+  ]
+ },
+ "template": {
+  "reasons": [
+   {
+    "id": "r1",
+    "text": "Highest sequence identity with the target",
+    "ok": true
+   },
+   {
+    "id": "r2",
+    "text": "Covers (aligns with) almost the whole target sequence",
+    "ok": true
+   },
+   {
+    "id": "r3",
+    "text": "Better experimental resolution (a smaller number is better)",
+    "ok": true
+   },
+   {
+    "id": "r4",
+    "text": "Is the same kind of protein in a suitable state (for example the form you want)",
+    "ok": true
+   },
+   {
+    "id": "r5",
+    "text": "It has the most famous name",
+    "ok": false
+   },
+   {
+    "id": "r6",
+    "text": "It was published first",
+    "ok": false
+   }
+  ]
+ },
+ "align": {
+  "hint": "Gaps inside a helix or a strand are almost always wrong. A gap belongs in a loop."
+ },
+ "decide": {
+  "uses": [
+   {
+    "id": "u1",
+    "text": "Judge the overall fold and plan mutagenesis experiments",
+    "needs": "A correct fold. About 30% identity or more is usually enough.",
+    "ok": true
+   },
+   {
+    "id": "u2",
+    "text": "Dock small molecules into a binding pocket",
+    "needs": "An accurate pocket: high identity in the pocket (about 50% or more), correct side chains and a good alignment there. Check the pocket residues one by one.",
+    "ok": false
+   },
+   {
+    "id": "u3",
+    "text": "Replace an experimental structure in a regulatory submission",
+    "needs": "Not acceptable. A model is a hypothesis to be tested.",
+    "ok": false
+   }
+  ],
+  "nextSteps": [
+   {
+    "id": "n1",
+    "text": "Compare with other models (other templates, a deep-learning prediction) and look at where they disagree.",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Refine the model (energy minimisation or short molecular dynamics) and check it again.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Test the model with experiments, for example mutate predicted key residues and measure the effect.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Treat the model as an experimental structure from now on.",
+    "right": false
+   },
+   {
+    "id": "n5",
+    "text": "Skip validation because the template was good.",
+    "right": false
+   }
+  ]
+ }
+}

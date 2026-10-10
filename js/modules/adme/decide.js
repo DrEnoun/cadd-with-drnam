@@ -39,7 +39,7 @@ export function render(host, api) {
     out.replaceChildren(
       hardFails.length ? feedback('bad', 'A serious flag in your list', `${hardFails.map(d => d.name).join(', ')} ${hardFails.length > 1 ? 'have' : 'has'} a major ADME flag (no predicted gut absorption, or an assay-interference scaffold). For an oral drug this is a deal-breaker unless you can explain how to fix it.`) : feedback('ok', 'No deal-breaker in your picks', 'None of your picks is outside the egg or an interference scaffold.'),
       passed.every(p => p >= best) ? feedback('ok', 'Strong profiles', 'Your picks pass as many checks as the best compounds in the list.') : feedback('bad', 'Some picks have weaker profiles', 'Look again at the table: other compounds pass more checks.'),
-      nextWrong ? feedback('bad', 'Check your next steps', 'Software predictions are a guide. Experiments confirm them, and strong target binding does not remove the need for ADME tests.') : null,
+      nextWrong ? feedback('bad', 'Check your next steps', 'Software predictions are a guide. Experiments confirm them, and strong target binding does not remove the need for ADME tests.') : '',
       h('h3', {}, 'Your report'), h('pre', { style: 'white-space:pre-wrap;background:var(--surface-100);padding:14px;border-radius:12px;font-family:inherit' }, body),
       h('button', { class: 'sticker', type: 'button', onclick: () => download(`adme-report-${store.get('code') || 'anon'}.txt`, body) }, 'Download my report (.txt)'));
     api.unlockNext();
