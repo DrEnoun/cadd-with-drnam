@@ -17,7 +17,7 @@ export const STEPS = [
 ];
 
 export default function mount(host, ctx) {
-  let alive = true, stepStart = 0, current = null;
+  let alive = true, stepStart = 0, current = null, stepCleanup = null;
   const [sub] = ctx.route;
   const go = path => { location.hash = `#/${M}${path ? '/' + path : ''}`; };
 
@@ -62,7 +62,7 @@ export default function mount(host, ctx) {
       unlockNext() { const b = body.querySelector('.nav .btn-start'); if (b) b.disabled = false; },
     };
     body.append(h('p', { class: 'eyebrow' }, `Step ${i + 1} of ${STEPS.length}`), h('h2', {}, step.title));
-    mod.render(body, api);
+    stepCleanup = mod.render(body, api) || null;
   }
 
   function intro() {
@@ -123,5 +123,5 @@ export default function mount(host, ctx) {
   }
 
   show();
-  return () => { alive = false; endStep(); host.innerHTML = ''; };
+  return () => { alive = false; endStep(); stepCleanup?.(); host.innerHTML = ''; };
 }

@@ -12,6 +12,8 @@ Interactive, software-agnostic concept simulations for computer-aided drug desig
 ## Module 1 — Molecular Docking
 Pre-test → Why dock? → Search and score → Prepare → Search box → Scoring → Validate (redocking, RMSD) → Analyse (layers of evidence) → Decide and justify (report) → Post-test and survey.
 
+The pictures are interactive **3D cartoon-style molecules** (three.js, bundled in `vendor/`, works offline): a cut-open mock protein with a pocket, a ball-and-stick ligand, residue sticks, dotted hydrogen bonds and a 3D search box. Drag to turn, pinch or scroll to zoom. If a browser has no WebGL, the controls and feedback still work.
+
 Every step opens with a "Why do we do this?" box and ends with a check of understanding.
 
 ## For educational research
@@ -40,7 +42,12 @@ Repository **Settings → Pages → Build and deployment → Deploy from a branc
 | `js/eval.js`, `js/store.js` | Consent, tests, survey, CSV export; local storage |
 | `js/modules/registry.js` | List of modules (add one here to add a module) |
 | `js/modules/docking/` | Module 1: `index.js` (flow) and one file per step |
-| `data/docking/` | `quiz.json`, `mock.json` (all mock data) |
+| `js/viewer3d.js` | 3D viewer and cartoon parts (atoms, bonds, pocket, box, labels) |
+| `js/modules/docking/geom.js` | Pure 3D maths (poses, RMSD, toy scoring function), tested in Node |
+| `data/docking/` | `quiz.json`, `mock.json` (all mock data: ligand and pocket coordinates, poses, results) |
+
+## Using a real protein structure (later)
+The 3D scene is built from the mock pocket in `data/docking/mock.json`. The viewer was written so a real structure from the Protein Data Bank (PDB format) can be added as a ribbon or surface; this needs a PDB file supplied by the lecturer.
 
 ## Teaching content
 All molecules, scores and results are **mock** and fictional. The science and wording should be reviewed by the lecturer before use. Parts of the software were written with an AI coding assistant (Claude) under the author's direction.

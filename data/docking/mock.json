@@ -1,120 +1,896 @@
 {
  "_about": "MOCK teaching data for Module 1. Nothing here is a real experiment. Protein and compound names are fictional.",
- "target": { "name": "Mock Enzyme A", "disease": "a made-up disease used for teaching", "keyResidues": ["ASP86", "LYS33", "GLU64"] },
+ "target": {
+  "name": "Mock Enzyme A",
+  "disease": "a made-up disease used for teaching",
+  "keyResidues": [
+   "ASP86",
+   "LYS33",
+   "GLU64"
+  ]
+ },
  "why": {
   "purposes": [
-   { "id": "vs", "text": "Find likely hits in a big compound library (virtual screening)" },
-   { "id": "pose", "text": "Predict the binding pose and guide chemical changes (structure-based design)" },
-   { "id": "sar", "text": "Explain why similar compounds have different activity (SAR)" },
-   { "id": "repurpose", "text": "Test an existing drug against a new target (repurposing)" },
-   { "id": "proof", "text": "Prove that a compound is a drug" },
-   { "id": "kd", "text": "Measure the real binding constant (Kd)" }
+   {
+    "id": "vs",
+    "text": "Find likely hits in a big compound library (virtual screening)"
+   },
+   {
+    "id": "pose",
+    "text": "Predict the binding pose and guide chemical changes (structure-based design)"
+   },
+   {
+    "id": "sar",
+    "text": "Explain why similar compounds have different activity (SAR)"
+   },
+   {
+    "id": "repurpose",
+    "text": "Test an existing drug against a new target (repurposing)"
+   },
+   {
+    "id": "proof",
+    "text": "Prove that a compound is a drug"
+   },
+   {
+    "id": "kd",
+    "text": "Measure the real binding constant (Kd)"
+   }
   ],
   "scenarios": [
-   { "id": "s1", "text": "A lab has 2 million commercial compounds for a target enzyme, but the budget lets it test only 50.", "answer": "vs", "why": "Docking is fast enough to rank a huge library, so it picks the few worth testing." },
-   { "id": "s2", "text": "You have a hit compound and an X-ray structure. Where does it sit in the pocket and which group should be changed to bind better?", "answer": "pose", "why": "The predicted pose shows which groups contact the protein and which point into empty space." },
-   { "id": "s3", "text": "Three analogues were measured in the lab. One is 100 times weaker and nobody knows why.", "answer": "sar", "why": "Docking each analogue can reveal a lost hydrogen bond or a clash that explains the activity difference." },
-   { "id": "s4", "text": "An approved drug for one disease might also block a protein linked to a different disease.", "answer": "repurpose", "why": "Docking known drugs into a new target is a quick way to suggest repurposing ideas to test." }
+   {
+    "id": "s1",
+    "text": "A lab has 2 million commercial compounds for a target enzyme, but the budget lets it test only 50.",
+    "answer": "vs",
+    "why": "Docking is fast enough to rank a huge library, so it picks the few worth testing."
+   },
+   {
+    "id": "s2",
+    "text": "You have a hit compound and an X-ray structure. Where does it sit in the pocket and which group should be changed to bind better?",
+    "answer": "pose",
+    "why": "The predicted pose shows which groups contact the protein and which point into empty space."
+   },
+   {
+    "id": "s3",
+    "text": "Three analogues were measured in the lab. One is 100 times weaker and nobody knows why.",
+    "answer": "sar",
+    "why": "Docking each analogue can reveal a lost hydrogen bond or a clash that explains the activity difference."
+   },
+   {
+    "id": "s4",
+    "text": "An approved drug for one disease might also block a protein linked to a different disease.",
+    "answer": "repurpose",
+    "why": "Docking known drugs into a new target is a quick way to suggest repurposing ideas to test."
+   }
   ],
   "workflow": [
-   { "t": "Target + ligands", "q": "What are we docking into what, and why?" },
-   { "t": "Prepare", "q": "Is the structure chemically sensible (hydrogens, charges, water)?" },
-   { "t": "Search box", "q": "Where should the program look?" },
-   { "t": "Search and score", "q": "Which poses fit best, and how strongly?" },
-   { "t": "Validate", "q": "Can the protocol reproduce a known answer?" },
-   { "t": "Analyse", "q": "Do the poses and interactions make sense?" },
-   { "t": "Decide", "q": "What do we take to the lab, and why?" }
+   {
+    "t": "Target + ligands",
+    "q": "What are we docking into what, and why?"
+   },
+   {
+    "t": "Prepare",
+    "q": "Is the structure chemically sensible (hydrogens, charges, water)?"
+   },
+   {
+    "t": "Search box",
+    "q": "Where should the program look?"
+   },
+   {
+    "t": "Search and score",
+    "q": "Which poses fit best, and how strongly?"
+   },
+   {
+    "t": "Validate",
+    "q": "Can the protocol reproduce a known answer?"
+   },
+   {
+    "t": "Analyse",
+    "q": "Do the poses and interactions make sense?"
+   },
+   {
+    "t": "Decide",
+    "q": "What do we take to the lab, and why?"
+   }
   ]
  },
  "prepare": [
-  { "id": "water", "item": "Crystallographic water molecules", "detail": "Dozens of water molecules appear in the file, some inside the pocket.", "answer": "remove",
-    "why": "Most crystal waters are removed so the ligand can occupy the pocket. Only a few conserved waters that bridge the ligand to the protein are ever kept, and that needs good evidence.",
-    "bad": "Leaving all waters in blocks space and can push the ligand into wrong poses." },
-  { "id": "cocrystal", "item": "The co-crystallised ligand in the pocket", "detail": "The structure was solved with a bound inhibitor.", "answer": "remove",
-    "why": "Remove it from the receptor, but save a copy: you will re-dock it later to validate the protocol.",
-    "bad": "If it stays, it fills the pocket and new ligands have nowhere to go. If you delete it without saving it, you cannot validate." },
-  { "id": "metal", "item": "A Mg²⁺ ion in the active site", "detail": "The ion sits next to the pocket.", "answer": "keep",
-    "why": "Metal ions that belong to the binding site are kept because ligands may interact with them and they shape the pocket.",
-    "bad": "Removing it changes the charge and shape of the site and can give wrong poses." },
-  { "id": "hydrogens", "item": "Hydrogen atoms", "detail": "X-ray structures usually do not show hydrogens, so the file has none.", "answer": "fix",
-    "why": "Add hydrogens. Hydrogen bonds and charges cannot be scored correctly without them.",
-    "bad": "Missing hydrogens mean hydrogen bonds are missed or mis-scored." },
-  { "id": "protonation", "item": "Protonation states of His, Asp and Glu", "detail": "The charge state of these residues has not been assigned.", "answer": "fix",
-    "why": "Assign protonation states at the relevant pH (often about 7.4). Charge decides whether a residue can donate or accept a hydrogen bond.",
-    "bad": "A wrongly charged residue can create or destroy key interactions." },
-  { "id": "missing", "item": "Missing side chains in the pocket", "detail": "Two pocket residues have incomplete side chains in the file.", "answer": "fix",
-    "why": "Repair them (model the missing atoms). Incomplete side chains leave artificial empty space in the pocket.",
-    "bad": "Leaving gaps lets ligands bind where real atoms should be." },
-  { "id": "altloc", "item": "Lys33 has two alternate conformations (A 60%, B 40%)", "detail": "The crystal contains a mixture of two positions.", "answer": "fix",
-    "why": "Choose one conformation (usually the higher occupancy, or the one in the known bound state) so the receptor has a single clear structure.",
-    "bad": "Both copies together make overlapping atoms and false clashes." },
-  { "id": "glycerol", "item": "A glycerol molecule far from the pocket", "detail": "Left over from the crystallisation buffer.", "answer": "remove",
-    "why": "Buffer and crystallisation additives away from the site are artefacts and are removed.",
-    "bad": "It is not part of the real system and can cause false interactions." },
-  { "id": "ligprep", "item": "The ligand file is flat (2D) and has no charges", "detail": "It was drawn in a sketching tool.", "answer": "fix",
-    "why": "Prepare the ligand: generate 3D coordinates, set protonation and charges for the pH, and minimise. Define rotatable bonds so the program can flex it.",
-    "bad": "A flat, uncharged ligand cannot be scored or flexed properly." }
+  {
+   "id": "water",
+   "item": "Crystallographic water molecules",
+   "detail": "Dozens of water molecules appear in the file, some inside the pocket.",
+   "answer": "remove",
+   "why": "Most crystal waters are removed so the ligand can occupy the pocket. Only a few conserved waters that bridge the ligand to the protein are ever kept, and that needs good evidence.",
+   "bad": "Leaving all waters in blocks space and can push the ligand into wrong poses."
+  },
+  {
+   "id": "cocrystal",
+   "item": "The co-crystallised ligand in the pocket",
+   "detail": "The structure was solved with a bound inhibitor.",
+   "answer": "remove",
+   "why": "Remove it from the receptor, but save a copy: you will re-dock it later to validate the protocol.",
+   "bad": "If it stays, it fills the pocket and new ligands have nowhere to go. If you delete it without saving it, you cannot validate."
+  },
+  {
+   "id": "metal",
+   "item": "A Mg²⁺ ion in the active site",
+   "detail": "The ion sits next to the pocket.",
+   "answer": "keep",
+   "why": "Metal ions that belong to the binding site are kept because ligands may interact with them and they shape the pocket.",
+   "bad": "Removing it changes the charge and shape of the site and can give wrong poses."
+  },
+  {
+   "id": "hydrogens",
+   "item": "Hydrogen atoms",
+   "detail": "X-ray structures usually do not show hydrogens, so the file has none.",
+   "answer": "fix",
+   "why": "Add hydrogens. Hydrogen bonds and charges cannot be scored correctly without them.",
+   "bad": "Missing hydrogens mean hydrogen bonds are missed or mis-scored."
+  },
+  {
+   "id": "protonation",
+   "item": "Protonation states of His, Asp and Glu",
+   "detail": "The charge state of these residues has not been assigned.",
+   "answer": "fix",
+   "why": "Assign protonation states at the relevant pH (often about 7.4). Charge decides whether a residue can donate or accept a hydrogen bond.",
+   "bad": "A wrongly charged residue can create or destroy key interactions."
+  },
+  {
+   "id": "missing",
+   "item": "Missing side chains in the pocket",
+   "detail": "Two pocket residues have incomplete side chains in the file.",
+   "answer": "fix",
+   "why": "Repair them (model the missing atoms). Incomplete side chains leave artificial empty space in the pocket.",
+   "bad": "Leaving gaps lets ligands bind where real atoms should be."
+  },
+  {
+   "id": "altloc",
+   "item": "Lys33 has two alternate conformations (A 60%, B 40%)",
+   "detail": "The crystal contains a mixture of two positions.",
+   "answer": "fix",
+   "why": "Choose one conformation (usually the higher occupancy, or the one in the known bound state) so the receptor has a single clear structure.",
+   "bad": "Both copies together make overlapping atoms and false clashes."
+  },
+  {
+   "id": "glycerol",
+   "item": "A glycerol molecule far from the pocket",
+   "detail": "Left over from the crystallisation buffer.",
+   "answer": "remove",
+   "why": "Buffer and crystallisation additives away from the site are artefacts and are removed.",
+   "bad": "It is not part of the real system and can cause false interactions."
+  },
+  {
+   "id": "ligprep",
+   "item": "The ligand file is flat (2D) and has no charges",
+   "detail": "It was drawn in a sketching tool.",
+   "answer": "fix",
+   "why": "Prepare the ligand: generate 3D coordinates, set protonation and charges for the pH, and minimise. Define rotatable bonds so the program can flex it.",
+   "bad": "A flat, uncharged ligand cannot be scored or flexed properly."
+  }
  ],
- "box": { "pocket": { "x": 26, "y": 17, "r": 9 }, "ligandLen": 12, "goodMax": 30, "start": { "x": 12, "y": 9, "s": 12 } },
+ "box": {
+  "pocketRadius": 9,
+  "goodMax": 30,
+  "ligandLen": 12,
+  "start": {
+   "c": [
+    -14,
+    9,
+    6
+   ],
+   "s": 12
+  }
+ },
  "scoring": {
-  "base": { "label": "Baseline shape fit (van der Waals)", "value": -3.0 },
-  "rotBonds": 4, "rotPenalty": 0.3,
+  "base": {
+   "label": "Baseline shape fit (van der Waals)",
+   "value": -3.0
+  },
+  "rotBonds": 4,
+  "rotPenalty": 0.3,
   "terms": [
-   { "id": "hb1", "label": "Hydrogen bond to ASP86", "value": -1.5, "desc": "A good donor and acceptor pair at the right distance and angle." },
-   { "id": "hb2", "label": "Hydrogen bond to LYS33", "value": -1.2, "desc": "A second hydrogen bond adds binding energy." },
-   { "id": "hyd", "label": "Phenyl ring buried in the greasy pocket (LEU12, VAL20, PHE80)", "value": -2.0, "desc": "Hiding a hydrophobic group from water is a strong driving force." },
-   { "id": "salt", "label": "Charged group forms a salt bridge with GLU64", "value": -1.8, "desc": "Opposite charges attract." },
-   { "id": "desolv", "label": "Cost of removing water from a charged group (desolvation)", "value": 0.8, "desc": "Stripping water from a charged group costs energy, so a salt bridge is never completely free." },
-   { "id": "clash", "label": "Steric clash with PHE80", "value": 3.0, "desc": "Atoms too close together repel strongly." }
+   {
+    "id": "hb1",
+    "label": "Hydrogen bond to ASP86",
+    "value": -1.5,
+    "desc": "A good donor and acceptor pair at the right distance and angle."
+   },
+   {
+    "id": "hb2",
+    "label": "Hydrogen bond to LYS33",
+    "value": -1.2,
+    "desc": "A second hydrogen bond adds binding energy."
+   },
+   {
+    "id": "hyd",
+    "label": "Phenyl ring buried in the greasy pocket (LEU12, VAL20, PHE80)",
+    "value": -2.0,
+    "desc": "Hiding a hydrophobic group from water is a strong driving force."
+   },
+   {
+    "id": "salt",
+    "label": "Charged group forms a salt bridge with GLU64",
+    "value": -1.8,
+    "desc": "Opposite charges attract."
+   },
+   {
+    "id": "desolv",
+    "label": "Cost of removing water from a charged group (desolvation)",
+    "value": 0.8,
+    "desc": "Stripping water from a charged group costs energy, so a salt bridge is never completely free."
+   },
+   {
+    "id": "clash",
+    "label": "Steric clash with PHE80",
+    "value": 3.0,
+    "desc": "Atoms too close together repel strongly."
+   }
   ]
  },
  "validate": {
-  "_about": "Crystal ligand atoms (Å). Each pose is a rigid move of the crystal ligand: dx, dy in Å, rot in degrees about the ligand centre, plus optional per-atom wobble. RMSD is computed from the atoms.",
-  "atoms": [[0,0],[1.4,0],[2.1,1.2],[1.4,2.4],[0,2.4],[-0.7,1.2],[3.6,1.2],[4.5,2.2],[5.9,2.2]],
-  "labels": ["C1","C2","C3","C4","C5","C6","N7","C8","O9"],
+  "_about": "Each pose moves the crystal ligand rigidly: rot = [axis x,y,z, degrees], t = shift in Å. RMSD is computed from the atoms.",
   "setups": [
-   { "id": "a", "title": "Setup A", "desc": "Hydrogens added, box centred on the ligand, waters removed, default settings.",
-     "poses": [ { "rank": 1, "score": -8.6, "dx": 0.5, "dy": -0.4, "rot": 8 }, { "rank": 2, "score": -8.3, "dx": 1.4, "dy": 0.8, "rot": -22 }, { "rank": 3, "score": -7.9, "dx": 3.2, "dy": -2.0, "rot": 150 } ],
-     "verdict": "valid" },
-   { "id": "b", "title": "Setup B", "desc": "Hydrogens NOT added and the box is too small, so the ligand cannot fully enter.",
-     "poses": [ { "rank": 1, "score": -7.4, "dx": 4.0, "dy": 3.2, "rot": 70 }, { "rank": 2, "score": -7.1, "dx": -3.8, "dy": 2.5, "rot": -110 }, { "rank": 3, "score": -6.9, "dx": 5.5, "dy": -2.6, "rot": 170 } ],
-     "verdict": "fix" },
-   { "id": "c", "title": "Setup C", "desc": "Setup looks fine, but the scoring function ranks a wrong pose first.",
-     "poses": [ { "rank": 1, "score": -9.1, "dx": 3.0, "dy": 3.6, "rot": 120 }, { "rank": 2, "score": -8.8, "dx": -2.8, "dy": 3.0, "rot": -75 }, { "rank": 3, "score": -8.1, "dx": 0.6, "dy": 0.4, "rot": 10 } ],
-     "verdict": "caution" }
+   {
+    "id": "a",
+    "title": "Setup A",
+    "desc": "Hydrogens added, box centred on the ligand, waters removed, default settings.",
+    "verdict": "valid",
+    "poses": [
+     {
+      "rank": 1,
+      "score": -8.6,
+      "rot": [
+       0,
+       0,
+       1,
+       9
+      ],
+      "t": [
+       0.4,
+       -0.3,
+       0.3
+      ]
+     },
+     {
+      "rank": 2,
+      "score": -8.3,
+      "rot": [
+       1,
+       0,
+       0,
+       -20
+      ],
+      "t": [
+       0.9,
+       0.6,
+       -0.7
+      ]
+     },
+     {
+      "rank": 3,
+      "score": -7.9,
+      "rot": [
+       0,
+       1,
+       0,
+       150
+      ],
+      "t": [
+       2.8,
+       -1.6,
+       1.2
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "title": "Setup B",
+    "desc": "Hydrogens NOT added and the box is too small, so the ligand cannot fully enter.",
+    "verdict": "fix",
+    "poses": [
+     {
+      "rank": 1,
+      "score": -7.4,
+      "rot": [
+       0,
+       0,
+       1,
+       70
+      ],
+      "t": [
+       3.4,
+       2.6,
+       1.6
+      ]
+     },
+     {
+      "rank": 2,
+      "score": -7.1,
+      "rot": [
+       1,
+       1,
+       0,
+       -110
+      ],
+      "t": [
+       -3.2,
+       2.1,
+       -1.4
+      ]
+     },
+     {
+      "rank": 3,
+      "score": -6.9,
+      "rot": [
+       0,
+       1,
+       1,
+       170
+      ],
+      "t": [
+       4.6,
+       -2.2,
+       2.0
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "title": "Setup C",
+    "desc": "Setup looks fine, but the scoring function ranks a wrong pose first.",
+    "verdict": "caution",
+    "poses": [
+     {
+      "rank": 1,
+      "score": -9.1,
+      "rot": [
+       0,
+       0,
+       1,
+       120
+      ],
+      "t": [
+       2.6,
+       3.0,
+       -1.0
+      ]
+     },
+     {
+      "rank": 2,
+      "score": -8.8,
+      "rot": [
+       1,
+       0,
+       1,
+       -75
+      ],
+      "t": [
+       -2.4,
+       2.6,
+       1.4
+      ]
+     },
+     {
+      "rank": 3,
+      "score": -8.1,
+      "rot": [
+       0,
+       0,
+       1,
+       10
+      ],
+      "t": [
+       0.5,
+       0.3,
+       -0.2
+      ]
+     }
+    ]
+   }
   ]
  },
  "analyse": {
   "stages": [
-   { "id": "score", "title": "Score only", "add": "score", "lesson": "Most people start here: the most negative score wins. Keep going." },
-   { "id": "interactions", "title": "Add interactions", "add": "interactions", "lesson": "Count hydrogen bonds and hydrophobic contacts. A score without sensible interactions is suspicious." },
-   { "id": "key", "title": "Add key residues", "add": "key", "lesson": "The reference inhibitor binds ASP86, LYS33 and GLU64. A new compound that misses them may not work the same way." },
-   { "id": "le", "title": "Add ligand efficiency", "add": "le", "lesson": "Ligand efficiency (LE) = -score ÷ heavy atoms. Big molecules score better just by touching more, so LE shows binding per atom." },
-   { "id": "pose", "title": "Add pose check", "add": "pose", "lesson": "Is the whole ligand inside the pocket, and does it overlay the reference pose? This catches a good score for a poor pose." }
+   {
+    "id": "score",
+    "title": "Score only",
+    "add": "score",
+    "lesson": "Most people start here: the most negative score wins. Keep going."
+   },
+   {
+    "id": "interactions",
+    "title": "Add interactions",
+    "add": "interactions",
+    "lesson": "Count hydrogen bonds and hydrophobic contacts. A score without sensible interactions is suspicious."
+   },
+   {
+    "id": "key",
+    "title": "Add key residues",
+    "add": "key",
+    "lesson": "The reference inhibitor binds ASP86, LYS33 and GLU64. A new compound that misses them may not work the same way."
+   },
+   {
+    "id": "le",
+    "title": "Add ligand efficiency",
+    "add": "le",
+    "lesson": "Ligand efficiency (LE) = -score ÷ heavy atoms. Big molecules score better just by touching more, so LE shows binding per atom."
+   },
+   {
+    "id": "pose",
+    "title": "Add pose check",
+    "add": "pose",
+    "lesson": "Is the whole ligand inside the pocket, and does it overlay the reference pose? This catches a good score for a poor pose."
+   }
   ],
   "ligands": [
-   { "id": "ref", "name": "Reference inhibitor (known)", "score": -8.4, "ha": 28, "mw": 392, "hbonds": ["ASP86", "LYS33", "GLU64"], "hydrophobic": ["LEU12", "VAL20", "PHE80"], "inside": 100, "overlay": 0 },
-   { "id": "A", "name": "Compound A", "score": -9.6, "ha": 45, "mw": 634, "hbonds": ["TYR90"], "hydrophobic": ["LEU12", "VAL20", "PHE80", "ILE95", "LEU101", "MET55"], "inside": 62, "overlay": 5.6 },
-   { "id": "B", "name": "Compound B", "score": -8.9, "ha": 30, "mw": 421, "hbonds": ["ASP86", "LYS33", "GLU64"], "hydrophobic": ["LEU12", "VAL20", "PHE80"], "inside": 100, "overlay": 1.2 },
-   { "id": "C", "name": "Compound C", "score": -7.1, "ha": 20, "mw": 286, "hbonds": ["ASP86", "LYS33"], "hydrophobic": ["PHE80"], "inside": 100, "overlay": 1.6 }
+   {
+    "id": "ref",
+    "name": "Reference inhibitor (known)",
+    "score": -8.4,
+    "ha": 28,
+    "mw": 392,
+    "hbonds": [
+     "ASP86",
+     "LYS33",
+     "GLU64"
+    ],
+    "hydrophobic": [
+     "LEU12",
+     "VAL20",
+     "PHE80"
+    ],
+    "inside": 100,
+    "overlay": 0
+   },
+   {
+    "id": "A",
+    "name": "Compound A",
+    "score": -9.6,
+    "ha": 45,
+    "mw": 634,
+    "hbonds": [
+     "TYR90"
+    ],
+    "hydrophobic": [
+     "LEU12",
+     "VAL20",
+     "PHE80",
+     "ILE95",
+     "LEU101",
+     "MET55"
+    ],
+    "inside": 62,
+    "overlay": 5.6
+   },
+   {
+    "id": "B",
+    "name": "Compound B",
+    "score": -8.9,
+    "ha": 30,
+    "mw": 421,
+    "hbonds": [
+     "ASP86",
+     "LYS33",
+     "GLU64"
+    ],
+    "hydrophobic": [
+     "LEU12",
+     "VAL20",
+     "PHE80"
+    ],
+    "inside": 100,
+    "overlay": 1.2
+   },
+   {
+    "id": "C",
+    "name": "Compound C",
+    "score": -7.1,
+    "ha": 20,
+    "mw": 286,
+    "hbonds": [
+     "ASP86",
+     "LYS33"
+    ],
+    "hydrophobic": [
+     "PHE80"
+    ],
+    "inside": 100,
+    "overlay": 1.6
+   }
   ]
  },
  "decide": {
   "evidence": [
-   { "id": "e1", "text": "Its docking score (-8.9) is as good as the known reference inhibitor (-8.4).", "for": "B" },
-   { "id": "e2", "text": "It makes all three key hydrogen bonds (ASP86, LYS33, GLU64) like the reference.", "for": "B" },
-   { "id": "e3", "text": "Its pose overlays the reference pose closely (about 1.2 Å) and sits fully in the pocket.", "for": "B" },
-   { "id": "e4", "text": "Its ligand efficiency is similar to the reference, so the score is not inflated by size.", "for": "B" },
-   { "id": "e5", "text": "It has the most negative docking score of all compounds.", "wrong": true, "why": "The best score alone is not enough; compound A has it but a poor pose." },
-   { "id": "e6", "text": "It is the largest molecule, so it must bind best.", "wrong": true, "why": "Size inflates scores. Efficiency and pose matter more." },
-   { "id": "e7", "text": "Docking proves it will be active in cells.", "wrong": true, "why": "Docking only predicts binding to one target. It cannot prove activity." }
+   {
+    "id": "e1",
+    "text": "Its docking score (-8.9) is as good as the known reference inhibitor (-8.4).",
+    "for": "B"
+   },
+   {
+    "id": "e2",
+    "text": "It makes all three key hydrogen bonds (ASP86, LYS33, GLU64) like the reference.",
+    "for": "B"
+   },
+   {
+    "id": "e3",
+    "text": "Its pose overlays the reference pose closely (about 1.2 Å) and sits fully in the pocket.",
+    "for": "B"
+   },
+   {
+    "id": "e4",
+    "text": "Its ligand efficiency is similar to the reference, so the score is not inflated by size.",
+    "for": "B"
+   },
+   {
+    "id": "e5",
+    "text": "It has the most negative docking score of all compounds.",
+    "wrong": true,
+    "why": "The best score alone is not enough; compound A has it but a poor pose."
+   },
+   {
+    "id": "e6",
+    "text": "It is the largest molecule, so it must bind best.",
+    "wrong": true,
+    "why": "Size inflates scores. Efficiency and pose matter more."
+   },
+   {
+    "id": "e7",
+    "text": "Docking proves it will be active in cells.",
+    "wrong": true,
+    "why": "Docking only predicts binding to one target. It cannot prove activity."
+   }
   ],
   "nextSteps": [
-   { "id": "n1", "text": "Check drug-likeness and ADME (can it be absorbed, distributed, metabolised and cleared?).", "right": true },
-   { "id": "n2", "text": "Test it in a laboratory binding or activity assay.", "right": true },
-   { "id": "n3", "text": "Check pose stability with a longer simulation (molecular dynamics) if resources allow.", "right": true },
-   { "id": "n4", "text": "Report it as a confirmed inhibitor.", "right": false },
-   { "id": "n5", "text": "Skip validation because the score is good.", "right": false }
+   {
+    "id": "n1",
+    "text": "Check drug-likeness and ADME (can it be absorbed, distributed, metabolised and cleared?).",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Test it in a laboratory binding or activity assay.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Check pose stability with a longer simulation (molecular dynamics) if resources allow.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Report it as a confirmed inhibitor.",
+    "right": false
+   },
+   {
+    "id": "n5",
+    "text": "Skip validation because the score is good.",
+    "right": false
+   }
+  ]
+ },
+ "ligand3d": {
+  "_about": "Mock ligand (Å). Ring centred at the origin. Elements: C, N, O. 'polar' atoms can make hydrogen bonds.",
+  "atoms": [
+   [
+    "C",
+    1.4,
+    0,
+    0
+   ],
+   [
+    "C",
+    0.7,
+    1.21,
+    0
+   ],
+   [
+    "C",
+    -0.7,
+    1.21,
+    0
+   ],
+   [
+    "C",
+    -1.4,
+    0,
+    0
+   ],
+   [
+    "C",
+    -0.7,
+    -1.21,
+    0
+   ],
+   [
+    "C",
+    0.7,
+    -1.21,
+    0
+   ],
+   [
+    "N",
+    2.9,
+    0.3,
+    0.5
+   ],
+   [
+    "C",
+    3.9,
+    1.4,
+    0.9
+   ],
+   [
+    "O",
+    3.7,
+    2.6,
+    1.2
+   ],
+   [
+    "C",
+    5.3,
+    0.9,
+    1.0
+   ],
+   [
+    "C",
+    6.2,
+    1.9,
+    1.9
+   ],
+   [
+    "O",
+    -2.8,
+    0.1,
+    -0.4
+   ]
+  ],
+  "bonds": [
+   [
+    0,
+    1
+   ],
+   [
+    1,
+    2
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    5,
+    0
+   ],
+   [
+    0,
+    6
+   ],
+   [
+    6,
+    7
+   ],
+   [
+    7,
+    8
+   ],
+   [
+    7,
+    9
+   ],
+   [
+    9,
+    10
+   ],
+   [
+    3,
+    11
+   ]
+  ],
+  "ring": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "fragment": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   11
+  ],
+  "extra": {
+   "A": [
+    [
+     "O",
+     6.8,
+     2.6,
+     3.6
+    ],
+    [
+     "C",
+     7.4,
+     3.8,
+     5.2
+    ],
+    [
+     "C",
+     8.6,
+     4.2,
+     6.4
+    ],
+    [
+     "C",
+     9.8,
+     5.4,
+     7.2
+    ],
+    [
+     "C",
+     11.0,
+     5.0,
+     8.4
+    ],
+    [
+     "O",
+     12.1,
+     5.9,
+     9.0
+    ]
+   ],
+   "A_bonds": [
+    [
+     10,
+     12
+    ],
+    [
+     12,
+     13
+    ],
+    [
+     13,
+     14
+    ],
+    [
+     14,
+     15
+    ],
+    [
+     15,
+     16
+    ]
+   ]
+  }
+ },
+ "pocket3d": {
+  "_about": "Mock pocket (Å). Residue positions are the functional atoms (side-chain ends). cavityRadius is the pocket wall.",
+  "cavityRadius": 10,
+  "shellRadius": 17,
+  "openingDeg": 45,
+  "greaseCentre": [
+   0,
+   0,
+   0
+  ],
+  "residues": {
+   "ASP86": {
+    "pos": [
+     -5.4,
+     0.6,
+     -1.2
+    ],
+    "type": "acceptor"
+   },
+   "GLU64": {
+    "pos": [
+     3.7,
+     -2.4,
+     -0.05
+    ],
+    "type": "acceptor"
+   },
+   "LYS33": {
+    "pos": [
+     4.3,
+     5.3,
+     0.4
+    ],
+    "type": "donor"
+   },
+   "LEU12": {
+    "pos": [
+     -1.0,
+     -3.9,
+     -2.4
+    ],
+    "type": "hydrophobic"
+   },
+   "VAL20": {
+    "pos": [
+     1.6,
+     -3.6,
+     -2.6
+    ],
+    "type": "hydrophobic"
+   },
+   "PHE80": {
+    "pos": [
+     0.5,
+     0.3,
+     -4.0
+    ],
+    "type": "hydrophobic"
+   },
+   "TYR90": {
+    "pos": [
+     8.9,
+     1.0,
+     4.4
+    ],
+    "type": "acceptor"
+   },
+   "MET55": {
+    "pos": [
+     5.8,
+     -0.5,
+     -3.2
+    ],
+    "type": "hydrophobic"
+   },
+   "ILE95": {
+    "pos": [
+     -3.5,
+     3.8,
+     -2.6
+    ],
+    "type": "hydrophobic"
+   },
+   "LEU101": {
+    "pos": [
+     -5.5,
+     -2.2,
+     2.5
+    ],
+    "type": "hydrophobic"
+   }
+  },
+  "hbondPairs": [
+   {
+    "atom": 11,
+    "res": "ASP86"
+   },
+   {
+    "atom": 6,
+    "res": "GLU64"
+   },
+   {
+    "atom": 8,
+    "res": "LYS33"
+   }
+  ],
+  "ring": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
   ]
  }
 }

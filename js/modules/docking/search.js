@@ -1,115 +1,78 @@
-// Step 2 — Search and score. The student acts as the search algorithm, then watches the computer try many poses.
-import { h, svg } from '../../ui.js';
+// Step 2 — Search and score, in 3D. The student acts as the search algorithm, then watches the computer try many poses.
+import { h } from '../../ui.js';
+import { modeBar, THREE } from '../../viewer3d.js';
+import { rotMat, mul, makePose, place, scorePose, IDENT, cross, scale, add, unit } from './geom.js';
+import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints } from './view.js';
 import { quizlet } from './quizlet.js';
 
-const S = 8; // pixels per Å
-const W = 50, H = 37.5; // scene size in Å
-const POCKET = [[13, 8], [36, 6], [43, 16], [41, 28], [26, 33], [11, 28], [7, 18]];
-const LIG = [[-5, -2], [1, -2.5], [5, -1.2], [5.5, 1.5], [1, 2.5], [-5, 2]]; // ligand outline around its centre
-const RING = [-3.4, 0], DONOR = [4.6, 0];
-const IDEAL = { x: 25, y: 19, a: 25 };
-const rot = ([x, y], a) => { const r = a * Math.PI / 180; return [x * Math.cos(r) - y * Math.sin(r), x * Math.sin(r) + y * Math.cos(r)]; };
-const place = (p, pt) => { const [x, y] = rot(pt, p.a); return [p.x + x, p.y + y]; };
-const inside = (pt, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
-const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-const GREASE = place(IDEAL, RING), ACCEPTOR = place(IDEAL, DONOR);
-
-/** A toy scoring function: baseline fit, a hydrogen bond, a buried greasy ring, and penalties for atoms outside the pocket. */
-export function score(p) {
-  const hb = -2.5 * Math.exp(-((dist(place(p, DONOR), ACCEPTOR) / 1.6) ** 2));
-  const hy = -3.5 * Math.exp(-((dist(place(p, RING), GREASE) / 2.6) ** 2));
-  const out = LIG.filter(v => !inside(place(p, v), POCKET)).length;
-  const s = -1.5 + hb + hy + out * 1.4;
-  return { total: Math.min(s, 6), hb, hy, out };
-}
+const rnd = () => Math.random(), gauss = () => (rnd() + rnd() + rnd() + rnd() - 2) * 1.7;
+const randAxis = () => unit([gauss(), gauss(), gauss()]);
 
 export function render(host, api) {
+  const D = api.data, env = { ...D.pocket3d, ring: D.ligand3d.ring }, base = ligandPoints(D), els = D.ligand3d.atoms.map(a => a[0]);
   host.append(
-    h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Every docking program does two jobs: it ', h('strong', {}, 'searches'), ' many positions and shapes of the ligand, and it ', h('strong', {}, 'scores'), ' each one. Understanding this pair explains almost everything else, including why the search box matters and why scores are only estimates.'),
-    h('p', {}, 'Try it yourself. Drag the ligand into the pocket and turn it. The score updates live. A ',
-      h('strong', {}, 'good pose'), ' puts the blue donor atom next to the acceptor (a hydrogen bond), buries the grey ring in the greasy patch, and keeps every atom inside the pocket.'));
+    h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Every docking program does two jobs: it ', h('strong', {}, 'searches'), ' many positions and orientations of the ligand, and it ', h('strong', {}, 'scores'), ' each one. Understanding this pair explains almost everything else, including why the search box matters and why scores are only estimates.'),
+    h('p', {}, 'Try it yourself: put the ligand into the pocket. Use the buttons to choose what dragging does. A ', h('strong', {}, 'good pose'), ' makes three hydrogen bonds (yellow dots between the ligand and the red or blue residue tips), sits the flat ring against the greasy residues (grey balls), and keeps every atom inside the pocket.'));
+  const pose = { R: rotMat([1, 1, 0], 110), t: [7, -5, -3] }; let best = Infinity;
+  const v = viewer(host, { height: 460, dist: 46 });
+  const lig = ligandGroup(ligandAtoms(D), D.ligand3d.bonds); const ghosts = new THREE.Group();
+  const hbLines = new THREE.Group();
+  if (v) { v.root.add(pocketGroup(D.pocket3d, { highlight: ['ASP86', 'GLU64', 'LYS33'] }), lig, ghosts, hbLines); v.view({ yaw: .15, pitch: .15 }); }
 
-  const pose = { x: 12, y: 28, a: -40 };
-  const best = { total: Infinity };
-  const root = svg('svg', { class: 'scene', viewBox: `0 0 ${W * S} ${H * S}`, role: 'img', 'aria-label': 'Ligand and protein pocket' });
-  const px = pts => pts.map(([x, y]) => `${x * S},${y * S}`).join(' ');
-  root.append(
-    svg('polygon', { points: px(POCKET), fill: 'color-mix(in srgb, var(--sky-300) 55%, transparent)', stroke: 'var(--glass-edge)', 'stroke-width': 3 }),
-    svg('circle', { cx: GREASE[0] * S, cy: GREASE[1] * S, r: 3.2 * S, fill: 'color-mix(in srgb, var(--slate-400) 30%, transparent)', stroke: 'var(--slate-400)', 'stroke-dasharray': '6 5', 'stroke-width': 2 }),
-    svg('text', { x: GREASE[0] * S, y: GREASE[1] * S - 3.6 * S, 'text-anchor': 'middle', 'font-size': 8 }, 'greasy patch'),
-    svg('circle', { cx: ACCEPTOR[0] * S, cy: ACCEPTOR[1] * S, r: 1.1 * S, fill: 'none', stroke: 'var(--coral-400)', 'stroke-width': 3 }),
-    svg('text', { x: ACCEPTOR[0] * S, y: ACCEPTOR[1] * S + 3 * S, 'text-anchor': 'middle', 'font-size': 8 }, 'acceptor (ASP86)'),
-    svg('text', { x: 14, y: 24, 'font-size': 9 }, 'Protein pocket (mock)'));
-  const trials = svg('g', {}); root.append(trials);
-  const lig = svg('g', { style: 'cursor:grab' });
-  const body = svg('polygon', { fill: 'var(--spark-400)', stroke: 'var(--sticker-ink)', 'stroke-width': 3, 'stroke-linejoin': 'round', opacity: .95 });
-  const ring = svg('circle', { r: 1.7 * S, fill: 'var(--slate-400)', stroke: 'var(--sticker-ink)', 'stroke-width': 2 });
-  const don = svg('circle', { r: 1 * S, fill: 'var(--bright-blue-400)', stroke: 'var(--sticker-ink)', 'stroke-width': 2 });
-  lig.append(body, ring, don); root.append(lig);
-
-  const meter = h('div', { class: 'meter' }, h('i'));
-  const sc = h('b', {}, ''); const info = h('p', { class: 'muted' }); const bestLbl = h('p', {});
-  const draw = () => {
-    body.setAttribute('points', LIG.map(v => place(pose, v).map(c => c * S).join(',')).join(' '));
-    const r = place(pose, RING), d = place(pose, DONOR);
-    ring.setAttribute('cx', r[0] * S); ring.setAttribute('cy', r[1] * S); don.setAttribute('cx', d[0] * S); don.setAttribute('cy', d[1] * S);
-    const s = score(pose);
-    sc.textContent = s.total.toFixed(1);
-    meter.firstChild.style.width = `${Math.max(0, Math.min(100, (-s.total / 8) * 100))}%`;
-    info.textContent = `Hydrogen bond: ${(-s.hb).toFixed(1)} · buried ring: ${(-s.hy).toFixed(1)} · atoms outside pocket: ${s.out}`;
-    if (s.total < best.total) { best.total = s.total; bestLbl.textContent = `Your best so far: ${best.total.toFixed(1)} kcal/mol (mock units).`; }
-    if (s.total < -7 && !api._found) { api._found = true; api.log('manual_found', s.total.toFixed(1)); }
+  const meter = h('div', { class: 'meter' }, h('i')), sc = h('b', {}), stats = h('div', { class: 'pose-stats' }), bestLbl = h('p', {}), result = h('p', {});
+  const placed = () => place(base, pose).map((p, i) => ({ el: els[i], p }));
+  const redraw = (skipBest = false) => {
+    const atoms = placed(); lig.userData.setAtoms(atoms);
+    const s = scorePose(atoms, env);
+    sc.textContent = s.total.toFixed(1); meter.firstChild.style.width = `${Math.max(0, Math.min(100, -s.total / 8 * 100))}%`;
+    const formed = s.bonds.filter(b => b.e < -0.5).length;
+    stats.replaceChildren(...[['Hydrogen bonds', `${formed} of 3`], ['Ring in greasy pocket', `${(-s.hy).toFixed(1)}`], ['Clashes', s.clash.toFixed(1)], ['Atoms outside pocket', s.out]].map(([k, val]) => h('span', {}, `${k}: `, h('b', {}, val))));
+    if (!skipBest && s.total < best) { best = s.total; bestLbl.textContent = `Your best so far: ${best.toFixed(1)} kcal/mol (mock units).`; }
+    if (s.total < -6 && !api._found) { api._found = true; api.log('manual_found', s.total.toFixed(1)); }
+    hbLines.clear?.(); [...hbLines.children].forEach(c => hbLines.remove(c));
+    if (v) for (const b of s.bonds) if (b.e < -0.3) { const hp = env.hbondPairs.find(x => x.res === b.res); hbLines.add(dashedLine(atoms[hp.atom].p, env.residues[b.res].pos)); }
+    v?.render(); return s;
   };
+  function dashedLine(a, b) { const g = new THREE.Group(); for (let i = 0; i < 6; i++) { const t = (i + .5) / 6, m = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd23a })); m.position.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); g.add(m); } return g; }
 
-  // dragging
-  let drag = null;
-  const toScene = e => { const b = root.getBoundingClientRect(); return [(e.clientX - b.left) / b.width * W, (e.clientY - b.top) / b.height * H]; };
-  lig.addEventListener('pointerdown', e => { e.preventDefault(); drag = { o: toScene(e), p: { ...pose } }; lig.setPointerCapture(e.pointerId); lig.style.cursor = 'grabbing'; });
-  lig.addEventListener('pointermove', e => { if (!drag) return; const c = toScene(e); pose.x = Math.max(2, Math.min(W - 2, drag.p.x + c[0] - drag.o[0])); pose.y = Math.max(2, Math.min(H - 2, drag.p.y + c[1] - drag.o[1])); draw(); });
-  const end = () => { drag = null; lig.style.cursor = 'grab'; };
-  lig.addEventListener('pointerup', end); lig.addEventListener('pointercancel', end);
-  const rotBtn = (txt, d) => h('button', { class: 'sticker', type: 'button', 'aria-label': `Rotate ${txt}`, onclick: () => { pose.a += d; draw(); } }, txt);
-  const move = (dx, dy, t) => h('button', { class: 'sticker', type: 'button', 'aria-label': `Move ${t}`, onclick: () => { pose.x += dx; pose.y += dy; draw(); } }, t);
+  if (v) v.onDrag = (mode, dx, dy, c) => {
+    if (mode === 'move') pose.t = add(pose.t, add(scale(c.right, dx * c.perPx), scale(c.up, -dy * c.perPx)));
+    else if (mode === 'turn') pose.R = mul(mul(rotMat(c.up, dx * .7), rotMat(c.right, dy * .7)), pose.R);
+    redraw();
+  };
+  const spin = (axis, deg, t) => h('button', { class: 'sticker', type: 'button', 'aria-label': `Turn ligand ${t}`, onclick: () => { pose.R = mul(rotMat(axis, deg), pose.R); redraw(); } }, t);
+  const slide = (i, name) => h('label', { class: 'row' }, h('span', { style: 'min-width:90px' }, name), h('input', { type: 'range', min: -12, max: 12, step: .2, value: pose.t[i], 'aria-label': `Move ligand ${name}`, style: 'flex:1;min-width:160px', oninput: e => { pose.t[i] = +e.target.value; redraw(); } }));
+  const fine = h('details', { class: 'fine' }, h('summary', {}, 'Fine controls (sliders and buttons)'),
+    slide(0, 'left / right'), slide(1, 'down / up'), slide(2, 'back / front'),
+    h('div', { class: 'row' }, 'Turn:', spin([1, 0, 0], 20, '↻ x'), spin([0, 1, 0], 20, '↻ y'), spin([0, 0, 1], 20, '↻ z'), spin([1, 0, 0], -20, '↺ x'), spin([0, 1, 0], -20, '↺ y'), spin([0, 0, 1], -20, '↺ z')));
 
-  const auto = h('button', { class: 'btn-start btn-start--small', type: 'button', onclick: runSearch }, 'Let the computer search (300 poses)');
-  const result = h('p', {});
+  const auto = h('button', { class: 'btn-start btn-start--small', type: 'button', onclick: runSearch }, 'Let the computer search');
   function runSearch() {
-    trials.innerHTML = '';
-    let top = null;
-    for (let i = 0; i < 300; i++) {
-      const p = { x: 8 + Math.random() * 34, y: 8 + Math.random() * 24, a: Math.random() * 360 };
-      const s = score(p).total;
-      if (!top || s < top.s) top = { p, s };
-      trials.append(svg('circle', { cx: p.x * S, cy: p.y * S, r: 3, fill: s < -6 ? 'var(--spark-400)' : s < -3 ? 'var(--title-accent)' : 'var(--slate-400)', opacity: .65 }));
-    }
-    // short local refinement, like the final optimisation in real programs
-    for (let k = 0; k < 150; k++) {
-      const q = { x: top.p.x + (Math.random() - .5) * 1.2, y: top.p.y + (Math.random() - .5) * 1.2, a: top.p.a + (Math.random() - .5) * 12 };
-      const s = score(q).total; if (s < top.s) top = { p: q, s };
-    }
-    Object.assign(pose, top.p); draw();
-    result.textContent = `The computer tried 300 random poses plus a short refinement. Best score: ${top.s.toFixed(1)}${best.total < Infinity && best.total <= top.s ? ` (yours: ${best.total.toFixed(1)}, as good or better!)` : ` (yours was ${best.total.toFixed(1)})`}. Dots are the tried positions: lime = good scores, grey = poor.`;
-    api.log('auto_search', top.s.toFixed(1));
-    api.done({ manualBest: best.total, autoBest: top.s });
-    unlockQuiz();
+    ghosts.clear?.(); [...ghosts.children].forEach(c => ghosts.remove(c));
+    const trials = []; let top = null;
+    const evalPose = p => scorePose(place(base, p).map((q, i) => ({ el: els[i], p: q })), env).total;
+    for (let i = 0; i < 500; i++) { const p = { R: rotMat(randAxis(), rnd() * 360), t: scale(unit([gauss(), gauss(), gauss()]), rnd() * 6) }; const s = evalPose(p); trials.push({ p, s }); if (!top || s < top.s) top = { p, s }; }
+    trials.sort((a, b) => a.s - b.s);
+    if (v) trials.slice(1, 4).forEach(({ p }) => { const g = ligandGroup(place(base, p).map((q, i) => ({ el: els[i], p: q })), D.ligand3d.bonds, { opacity: .3, outline: false }); ghosts.add(g); });
+    for (let k = 0; k < 900; k++) { const f = 1 - k / 900; const q = { R: mul(rotMat(randAxis(), gauss() * 7 * f + .3), top.p.R), t: add(top.p.t, scale([gauss(), gauss(), gauss()], .45 * f + .03)) }; const s = evalPose(q); if (s < top.s) top = { p: q, s }; }
+    pose.R = top.p.R; pose.t = top.p.t; redraw(true);
+    result.textContent = `The computer tried 500 random poses (faint copies show the next best ones), then improved the best one with 900 small steps. Best score: ${top.s.toFixed(1)}${best <= top.s + .05 ? `. Your best was ${best.toFixed(1)}, as good or better!` : `. Your best was ${best.toFixed(1)}.`} Real programs do this far more cleverly, but the idea is the same.`;
+    api.log('auto_search', top.s.toFixed(1)); api.done({ manualBest: +best.toFixed(2), autoBest: +top.s.toFixed(2) }); quizSlot.hidden = false;
   }
-
-  host.append(root,
-    h('div', { class: 'row', style: 'margin-top:12px' }, h('div', { class: 'kv' }, h('span', {}, 'Score (kcal/mol, mock)'), sc), h('div', { style: 'flex:1;min-width:160px' }, meter)),
-    info, bestLbl,
-    h('div', { class: 'row' }, 'Turn:', rotBtn('↺ 15°', -15), rotBtn('↻ 15°', 15), 'Nudge:', move(-1, 0, '←'), move(1, 0, '→'), move(0, -1, '↑'), move(0, 1, '↓')),
+  host.append(
+    v ? modeBar(v, [['view', 'Rotate the view'], ['move', 'Move the ligand'], ['turn', 'Turn the ligand']]) : h('p', {}, 'Use the fine controls below.'),
+    h('p', { class: 'hint' }, 'Tip: pinch or scroll to zoom. Switch to "Rotate the view" to look at the pocket from other sides, because depth is hard to judge from one angle.'),
+    h('div', { class: 'row', style: 'margin-top:12px' }, h('div', { class: 'kv' }, h('span', {}, 'Score (kcal/mol, mock)'), sc), h('div', { style: 'flex:1;min-width:160px' }, meter)), stats, bestLbl, fine,
     h('div', { class: 'row', style: 'margin-top:12px' }, auto), result);
-  draw();
+  redraw();
 
-  const quizSlot = h('div', { class: 'stack', hidden: true });
-  const quiz = quizlet(api, [
+  const quizSlot = h('div', { class: 'stack', hidden: true }, h('h3', {}, 'Check your understanding'), quizlet(api, [
     { id: 'sc', q: 'In this activity, which part ranked the poses?', options: ['The scoring function', 'The search box', 'The protein structure file', 'The ligand name'], answer: 0, why: 'The score ranks the poses. The search decides which poses get tried.' },
     { id: 'rb', q: 'A ligand with many rotatable bonds (very flexible) is harder to dock because…', options: ['the number of possible poses grows enormously', 'the protein becomes smaller', 'the score is always better', 'hydrogens disappear'], answer: 0, why: 'Each rotatable bond adds more shapes to try, so the search space explodes. That is why ligand preparation and sensible settings matter.' },
-  ], { onAll: () => { api.unlockNext(); } });
-  quizSlot.append(h('h3', {}, 'Check your understanding'), quiz);
-  const unlockQuiz = () => { quizSlot.hidden = false; };
+  ], { onAll: () => api.unlockNext() }));
   host.append(quizSlot,
     h('div', { class: 'card sticker-static', style: 'margin-top:20px' }, h('h3', {}, 'Rigid or flexible?'),
       h('p', {}, 'The first idea of binding was a rigid ', h('strong', {}, 'lock and key'), '. Real proteins move a little to fit the ligand (', h('strong', {}, 'induced fit'), '). Most docking programs keep the protein rigid, or allow only a few side chains to move, to stay fast. That is one reason a docking result is a prediction to be tested, not a fact.')),
     api.nav(true));
+  return () => v?.dispose();
 }
