@@ -1,8 +1,8 @@
 // Step 6 — Validation by redocking, in 3D. RMSD is computed from the atom coordinates of the moved ligand.
 import { h, feedback } from '../../ui.js';
-import { THREE, dashed } from '../../viewer3d.js';
+import { THREE, dashed, callout, labelBar } from '../../viewer3d.js';
 import { rotMat, place, rmsd, poseRmsd } from './geom.js';
-import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints } from './view.js';
+import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints, KEYCOL } from './view.js';
 
 export { poseRmsd };
 
@@ -16,7 +16,8 @@ export function render(host, api) {
   const v = viewer(host, { height: 440, dist: 34 });
   const dyn = new THREE.Group();
   if (v) v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513'] }), ligandGroup(ligandAtoms(D), st.ligand.bonds, { halo: 3 }), dyn);
-  let si = 0, pi = 0;
+  let si = 0, pi = 0, nameT = null, nameD = null; const names = new THREE.Group();
+  if (v) { nameT = callout('Crystal ligand: the truth', [0, 0, 0], [-12, 8, 4], KEYCOL.ligand); nameD = callout('Docked pose: the prediction', [0, 0, 0], [12, -8, 4], KEYCOL.docked); names.add(nameT, nameD); v.root.add(names); host.append(labelBar(names, [{ label: 'Crystal ligand: where the drug really sits', color: KEYCOL.ligand }, { label: 'Docked pose: where the program put it', color: KEYCOL.docked }, { label: 'Dotted lines: distance between matching atoms', color: '#ffffff' }])); }
   const info = h('div', {}), setupTabs = h('div', { class: 'row' }), poseTabs = h('div', { class: 'row' });
   const draw = () => {
     const s = V.setups[si], p = s.poses[pi], q = place(base, { R: rotMat(p.rot.slice(0, 3), p.rot[3]), t: p.t });
@@ -25,6 +26,8 @@ export function render(host, api) {
       [...dyn.children].forEach(c => dyn.remove(c));
       dyn.add(ligandGroup(q.map((pp, i) => ({ el: els[i], p: pp })), st.ligand.bonds, { carbon: 0xfc7a7a, halo: 3 }));
       base.forEach((b, i) => dyn.add(dashed(b, q[i], 0xffffff, 5)));
+      const cen = q.reduce((c, pp) => [c[0] + pp[0] / q.length, c[1] + pp[1] / q.length, c[2] + pp[2] / q.length], [0, 0, 0]);
+      nameD.userData.set(cen, [12, -8, 4]);
       v.render();
     }
     info.replaceChildren(h('p', {}, s.desc), h('div', { class: 'kv' }, h('span', {}, `Pose ${p.rank} · score ${p.score}`), h('span', {}, 'RMSD'), h('b', {}, `${r.toFixed(1)} Å`), h('span', { class: 'tag' }, r <= 2 ? 'Success (≤ 2 Å)' : 'Failed (> 2 Å)')));
