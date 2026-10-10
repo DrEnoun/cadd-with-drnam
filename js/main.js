@@ -24,15 +24,34 @@ async function route() {
     cleanup = mod.default(app, { route: rest, module: m }) || null;
   } else if (page === 'results') record();
   else if (page === 'about') about();
-  else home();
+  else cleanup = home() || null;
   window.scrollTo(0, 0);
+}
+
+/** Subtle life for the banner: slow drift (CSS), a soft light sweep, drifting sparkles and a small pointer parallax. Off for reduced motion. */
+function heroMotion(hero) {
+  if (!hero || matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+  const pic = hero.querySelector('.hero__pic'), sparks = hero.querySelector('.hero__sparks');
+  for (let i = 0; i < 16; i++) {
+    const d = document.createElement('i'), big = i % 5 === 0;
+    d.style.cssText = `--x:${(Math.random() * 100).toFixed(1)}%;--y:${(Math.random() * 100).toFixed(1)}%;--s:${big ? 7 + Math.random() * 5 : 3 + Math.random() * 3}px;--d:${(7 + Math.random() * 9).toFixed(1)}s;--t:${(-Math.random() * 12).toFixed(1)}s;--dx:${(Math.random() * 40 - 20).toFixed(0)}px`;
+    sparks.appendChild(d);
+  }
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, on = true;
+  const loop = () => { cx += (tx - cx) * .06; cy += (ty - cy) * .06; pic.style.setProperty('--px', cx.toFixed(3)); pic.style.setProperty('--py', cy.toFixed(3)); raf = on ? requestAnimationFrame(loop) : 0; };
+  const move = e => { const r = hero.getBoundingClientRect(); tx = ((e.clientX - r.left) / r.width - .5) * 2; ty = ((e.clientY - r.top) / r.height - .5) * 2; };
+  const leave = () => { tx = 0; ty = 0; };
+  hero.addEventListener('pointermove', move); hero.addEventListener('pointerleave', leave);
+  const io = new IntersectionObserver(([en]) => { on = en.isIntersecting; hero.classList.toggle('is-paused', !on); if (on && !raf) raf = requestAnimationFrame(loop); }, { threshold: 0.05 });
+  io.observe(hero); raf = requestAnimationFrame(loop);
+  return () => { on = false; cancelAnimationFrame(raf); io.disconnect(); hero.removeEventListener('pointermove', move); hero.removeEventListener('pointerleave', leave); };
 }
 
 function home() {
   document.title = 'CADD with Dr. NAM';
   app.append(
     h('section', { class: 'hero hero--stack' },
-      h('div', { class: 'hero__pic' }, art('hero', 'Colourful illustration of a protein with a drug in its pocket, a laptop running a simulation, a funnel filtering candidate molecules, and a capsule with arrows to the liver, kidney, gut and blood.', { eager: true, sizes: '100vw', cls: 'hero__img', small: 1000, full: 2000, ratio: 711 / 2000 })),
+      h('div', { class: 'hero__pic' }, h('div', { class: 'hero__plx' }, art('hero', 'Colourful illustration of a protein with a drug in its pocket, a laptop running a simulation, a funnel filtering candidate molecules, and a capsule with arrows to the liver, kidney, gut and blood.', { eager: true, sizes: '100vw', cls: 'hero__img', small: 1000, full: 2000, ratio: 711 / 2000 })), h('div', { class: 'hero__sparks', 'aria-hidden': 'true' }), h('div', { class: 'hero__sheen', 'aria-hidden': 'true' })),
       h('div', { class: 'hero__content' },
         h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
         h('div', {},
@@ -50,6 +69,7 @@ function home() {
     h('section', { class: 'glass stack' },
       h('h2', {}, 'How each module works'),
       h('div', { class: 'howto' }, [['1', 'Pre-test', 'A short test shows what you already know.'], ['2', 'The mission', 'Work through the steps. Every step starts with “Why do we do this?”.'], ['3', 'Decide', 'The last step asks you to choose and justify, like a real project.'], ['4', 'Post-test', 'The same questions again, then a short survey.']].map(([n, t, d]) => h('div', { class: 'howto__item' }, h('b', {}, n), h('div', {}, h('strong', {}, t), h('p', {}, d)))))));
+  return heroMotion(app.querySelector('.hero--stack'));
 }
 
 function record() {

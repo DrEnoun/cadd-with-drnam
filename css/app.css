@@ -195,3 +195,18 @@ select option { background: #ffffff; color: #231f20; }
 .hero--stack h1, .hero--stack .lead { color: var(--ink-strong); } .hero--stack .eyebrow { color: var(--title-accent); }
 .hero--stack .lead { opacity: .95; max-width: 70ch; }
 @media (max-width: 700px) { .hero--stack .hero__pic { aspect-ratio: 16 / 9; } .hero--stack .hero__img { object-fit: cover; } .hero--stack .hero__content { grid-template-columns: 1fr; } }
+
+/* Banner motion: all of it is subtle and switched off for reduced motion */
+.hero--stack .hero__pic { position: relative; overflow: hidden; }
+.hero__plx { position: absolute; inset: 0; transform: translate3d(calc(var(--px, 0) * -9px), calc(var(--py, 0) * -5px), 0); will-change: transform; }
+.hero--stack .hero__img { position: absolute; inset: 0; transform-origin: 55% 50%; animation: heroDrift 28s ease-in-out infinite alternate; will-change: transform; }
+@keyframes heroDrift { from { transform: scale(1.06) translate3d(-1.2%, .6%, 0); } to { transform: scale(1.12) translate3d(1.2%, -.8%, 0); } }
+.hero__sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; opacity: .9;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.55) 50%, transparent 62%); background-size: 260% 100%; background-position: 130% 0; animation: heroSheen 11s ease-in-out infinite; }
+@keyframes heroSheen { 0%, 25% { background-position: 130% 0; } 75%, 100% { background-position: -30% 0; } }
+.hero__sparks { position: absolute; inset: 0; pointer-events: none; transform: translate3d(calc(var(--px, 0) * 5px), calc(var(--py, 0) * 3px), 0); }
+.hero__sparks i { position: absolute; left: var(--x); top: var(--y); width: var(--s); height: var(--s); border-radius: 50%; background: #fff; box-shadow: 0 0 8px 2px rgba(255,255,255,.75), 0 0 18px 5px rgba(120,220,255,.45);
+  opacity: 0; animation: heroSpark var(--d) ease-in-out var(--t) infinite; }
+@keyframes heroSpark { 0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(.6); } 25% { opacity: .85; } 60% { opacity: .55; } 100% { opacity: 0; transform: translate3d(var(--dx), -34px, 0) scale(1.1); } }
+.hero.is-paused *, .hero.is-paused { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { .hero--stack .hero__img, .hero__sheen, .hero__sparks i { animation: none !important; } .hero__sparks, .hero__sheen { display: none; } .hero__plx { transform: none; } .hero--stack .hero__img { transform: scale(1.01); } }
