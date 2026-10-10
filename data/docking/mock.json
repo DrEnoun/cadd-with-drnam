@@ -1,0 +1,588 @@
+{
+ "_about": "TEACHING data for Module 1. The protein is the real COX-2 structure 3LN1 (data/docking/cox2.json). Docking poses, scores and compounds A, B and C are MOCK: no docking was run.",
+ "target": {
+  "name": "COX-2 (cyclooxygenase-2)",
+  "pdb": "3LN1",
+  "drug": "celecoxib",
+  "disease": "inflammation and pain",
+  "keyResidues": [
+   "HIS90",
+   "GLN192",
+   "ARG513"
+  ],
+  "gateResidues": [
+   "ARG120",
+   "TYR355"
+  ]
+ },
+ "why": {
+  "purposes": [
+   {
+    "id": "vs",
+    "text": "Find likely hits in a big compound library (virtual screening)"
+   },
+   {
+    "id": "pose",
+    "text": "Predict the binding pose and guide chemical changes (structure-based design)"
+   },
+   {
+    "id": "sar",
+    "text": "Explain why similar compounds have different activity (SAR)"
+   },
+   {
+    "id": "repurpose",
+    "text": "Test an existing drug against a new target (repurposing)"
+   },
+   {
+    "id": "proof",
+    "text": "Prove that a compound is a drug"
+   },
+   {
+    "id": "kd",
+    "text": "Measure the real binding constant (Kd)"
+   }
+  ],
+  "scenarios": [
+   {
+    "id": "s1",
+    "text": "A lab has 2 million commercial compounds for a target enzyme, but the budget lets it test only 50.",
+    "answer": "vs",
+    "why": "Docking is fast enough to rank a huge library, so it picks the few worth testing."
+   },
+   {
+    "id": "s2",
+    "text": "You have a hit compound and an X-ray structure. Where does it sit in the pocket and which group should be changed to bind better?",
+    "answer": "pose",
+    "why": "The predicted pose shows which groups contact the protein and which point into empty space."
+   },
+   {
+    "id": "s3",
+    "text": "Three analogues were measured in the lab. One is 100 times weaker and nobody knows why.",
+    "answer": "sar",
+    "why": "Docking each analogue can reveal a lost hydrogen bond or a clash that explains the activity difference."
+   },
+   {
+    "id": "s4",
+    "text": "An approved drug for one disease might also block a protein linked to a different disease.",
+    "answer": "repurpose",
+    "why": "Docking known drugs into a new target is a quick way to suggest repurposing ideas to test."
+   }
+  ],
+  "workflow": [
+   {
+    "t": "Target + ligands",
+    "q": "What are we docking into what, and why?"
+   },
+   {
+    "t": "Prepare",
+    "q": "Is the structure chemically sensible (hydrogens, charges, water)?"
+   },
+   {
+    "t": "Search box",
+    "q": "Where should the program look?"
+   },
+   {
+    "t": "Search and score",
+    "q": "Which poses fit best, and how strongly?"
+   },
+   {
+    "t": "Validate",
+    "q": "Can the protocol reproduce a known answer?"
+   },
+   {
+    "t": "Analyse",
+    "q": "Do the poses and interactions make sense?"
+   },
+   {
+    "t": "Decide",
+    "q": "What do we take to the lab, and why?"
+   }
+  ]
+ },
+ "prepare": [
+  {
+   "id": "chains",
+   "item": "Four copies of the protein (chains A, B, C and D) in the file",
+   "detail": "The crystal contains two COX-2 dimers; each copy has its own celecoxib.",
+   "answer": "remove",
+   "why": "Keep one chain (here chain A) and delete the others. Docking into one active site is enough, and extra copies only confuse the setup.",
+   "bad": "Extra chains can capture ligands in the wrong place and slow every run."
+  },
+  {
+   "id": "water",
+   "item": "Crystallographic water molecules",
+   "detail": "More than a hundred water molecules appear in the file, some near the pocket.",
+   "answer": "remove",
+   "why": "Most crystal waters are removed so the ligand can occupy the pocket. Only a few conserved waters that bridge the ligand to the protein are ever kept, and that needs good evidence.",
+   "bad": "Leaving all waters in blocks space and can push the ligand into wrong poses."
+  },
+  {
+   "id": "cocrystal",
+   "item": "Celecoxib (CEL) sitting in the active site",
+   "detail": "The structure was solved with the drug bound.",
+   "answer": "remove",
+   "why": "Remove it from the receptor, but save a copy: you will re-dock it later to validate the protocol.",
+   "bad": "If it stays, it fills the pocket and new ligands have nowhere to go. If you delete it without saving it, you cannot validate."
+  },
+  {
+   "id": "heme",
+   "item": "The haem (HEM) group",
+   "detail": "COX-2 is a haem-containing enzyme. The haem is deeper in the protein, next to the active site.",
+   "answer": "keep",
+   "why": "A cofactor that belongs to the enzyme is kept. It shapes the protein and the nearby site, so removing it would change the structure you are docking into.",
+   "bad": "Removing the cofactor changes the shape and charge of the enzyme."
+  },
+  {
+   "id": "nag",
+   "item": "Sugar chains (NAG) on the protein surface",
+   "detail": "N-acetylglucosamine groups are attached to asparagine residues far from the pocket.",
+   "answer": "remove",
+   "why": "They are far from the binding site and not needed for docking. Removing them keeps the system simple.",
+   "bad": "Extra groups far away add atoms to every calculation without helping."
+  },
+  {
+   "id": "bog",
+   "item": "A detergent molecule (BOG) from crystallisation",
+   "detail": "Used to keep the protein soluble in the crystal.",
+   "answer": "remove",
+   "why": "Detergents and other crystallisation additives are artefacts and are removed.",
+   "bad": "It is not part of the real system and can cause false interactions."
+  },
+  {
+   "id": "hydrogens",
+   "item": "Hydrogen atoms",
+   "detail": "X-ray structures usually do not show hydrogens, so the file has none.",
+   "answer": "fix",
+   "why": "Add hydrogens. Hydrogen bonds and charges cannot be scored correctly without them.",
+   "bad": "Missing hydrogens mean hydrogen bonds are missed or mis-scored."
+  },
+  {
+   "id": "protonation",
+   "item": "Protonation states of His, Asp, Glu (for example His90)",
+   "detail": "The charge state of these residues has not been assigned.",
+   "answer": "fix",
+   "why": "Assign protonation states at the relevant pH (often about 7.4). Charge decides whether a residue can donate or accept a hydrogen bond.",
+   "bad": "A wrongly charged residue can create or destroy key interactions."
+  },
+  {
+   "id": "missing",
+   "item": "Missing residues and atoms (the file lists residues 570 to 578 as not seen)",
+   "detail": "Some parts of the chain were not visible in the crystal.",
+   "answer": "fix",
+   "why": "Check the header (REMARK 465 and 470) for what is missing, and repair or model residues that are near the pocket. Gaps far from the site usually do not matter.",
+   "bad": "Gaps near the pocket leave artificial empty space that ligands can wrongly use."
+  },
+  {
+   "id": "ligprep",
+   "item": "The ligand file is flat (2D) and has no charges",
+   "detail": "It was drawn in a sketching tool.",
+   "answer": "fix",
+   "why": "Prepare the ligand: generate 3D coordinates, set protonation and charges for the pH, and minimise. Define rotatable bonds so the program can flex it.",
+   "bad": "A flat, uncharged ligand cannot be scored or flexed properly."
+  }
+ ],
+ "box": {
+  "pocketRadius": 9,
+  "goodMax": 30,
+  "ligandLen": 14,
+  "start": {
+   "c": [
+    -14,
+    9,
+    6
+   ],
+   "s": 12
+  }
+ },
+ "scoring": {
+  "base": {
+   "label": "Baseline shape fit (van der Waals)",
+   "value": -3.0
+  },
+  "rotBonds": 4,
+  "rotPenalty": 0.3,
+  "terms": [
+   {
+    "id": "hb1",
+    "label": "Hydrogen bond between the sulfonamide and His90",
+    "value": -1.5,
+    "desc": "A good donor and acceptor pair at the right distance and angle."
+   },
+   {
+    "id": "hb2",
+    "label": "Hydrogen bond to Gln192",
+    "value": -1.2,
+    "desc": "A second hydrogen bond adds binding energy."
+   },
+   {
+    "id": "hyd",
+    "label": "Tolyl and CF₃ groups buried in the hydrophobic channel (Val349, Leu352, Phe518, Val523)",
+    "value": -2.0,
+    "desc": "Hiding a hydrophobic group from water is a strong driving force."
+   },
+   {
+    "id": "salt",
+    "label": "Charged group forms a salt bridge with Arg120 at the channel entrance",
+    "value": -1.8,
+    "desc": "Opposite charges attract. Arg120 is where many acidic NSAIDs anchor."
+   },
+   {
+    "id": "desolv",
+    "label": "Cost of removing water from a charged group (desolvation)",
+    "value": 0.8,
+    "desc": "Stripping water from a charged group costs energy, so a salt bridge is never completely free."
+   },
+   {
+    "id": "clash",
+    "label": "Steric clash with Phe518",
+    "value": 3.0,
+    "desc": "Atoms too close together repel strongly."
+   }
+  ]
+ },
+ "validate": {
+  "_about": "Mock poses: rot = [axis x,y,z, degrees] about the ligand centre, t = shift in Å. RMSD is computed from the atoms.",
+  "setups": [
+   {
+    "id": "a",
+    "title": "Setup A",
+    "desc": "Hydrogens added, one chain kept, box centred on celecoxib, waters removed, default settings.",
+    "verdict": "valid",
+    "poses": [
+     {
+      "rank": 1,
+      "score": -9.6,
+      "rot": [
+       0,
+       0,
+       1,
+       5
+      ],
+      "t": [
+       0.3,
+       -0.2,
+       0.3
+      ]
+     },
+     {
+      "rank": 2,
+      "score": -9.3,
+      "rot": [
+       1,
+       0,
+       0,
+       -9
+      ],
+      "t": [
+       0.6,
+       0.4,
+       -0.5
+      ]
+     },
+     {
+      "rank": 3,
+      "score": -8.9,
+      "rot": [
+       0,
+       1,
+       0,
+       150
+      ],
+      "t": [
+       2.8,
+       -1.6,
+       1.2
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "title": "Setup B",
+    "desc": "Hydrogens NOT added and the box is too small, so the ligand cannot fully enter.",
+    "verdict": "fix",
+    "poses": [
+     {
+      "rank": 1,
+      "score": -8.4,
+      "rot": [
+       0,
+       0,
+       1,
+       70
+      ],
+      "t": [
+       3.4,
+       2.6,
+       1.6
+      ]
+     },
+     {
+      "rank": 2,
+      "score": -8.1,
+      "rot": [
+       1,
+       1,
+       0,
+       -110
+      ],
+      "t": [
+       -3.2,
+       2.1,
+       -1.4
+      ]
+     },
+     {
+      "rank": 3,
+      "score": -7.9,
+      "rot": [
+       0,
+       1,
+       1,
+       170
+      ],
+      "t": [
+       4.6,
+       -2.2,
+       2.0
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "title": "Setup C",
+    "desc": "Setup looks fine, but the scoring function ranks a wrong pose first.",
+    "verdict": "caution",
+    "poses": [
+     {
+      "rank": 1,
+      "score": -10.1,
+      "rot": [
+       0,
+       0,
+       1,
+       120
+      ],
+      "t": [
+       2.6,
+       3.0,
+       -1.0
+      ]
+     },
+     {
+      "rank": 2,
+      "score": -9.8,
+      "rot": [
+       1,
+       0,
+       1,
+       -75
+      ],
+      "t": [
+       -2.4,
+       2.6,
+       1.4
+      ]
+     },
+     {
+      "rank": 3,
+      "score": -9.1,
+      "rot": [
+       0,
+       0,
+       1,
+       7
+      ],
+      "t": [
+       0.4,
+       0.2,
+       -0.2
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "analyse": {
+  "stages": [
+   {
+    "id": "score",
+    "title": "Score only",
+    "add": "score",
+    "lesson": "Most people start here: the most negative score wins. Keep going."
+   },
+   {
+    "id": "interactions",
+    "title": "Add interactions",
+    "add": "interactions",
+    "lesson": "Count hydrogen bonds and hydrophobic contacts. A score without sensible interactions is suspicious."
+   },
+   {
+    "id": "key",
+    "title": "Add key residues",
+    "add": "key",
+    "lesson": "The reference drug celecoxib binds His90, Gln192 and Arg513 in the selective side pocket of COX-2. A new compound that misses them may not work the same way."
+   },
+   {
+    "id": "le",
+    "title": "Add ligand efficiency",
+    "add": "le",
+    "lesson": "Ligand efficiency (LE) = -score ÷ heavy atoms. Big molecules score better just by touching more, so LE shows binding per atom."
+   },
+   {
+    "id": "pose",
+    "title": "Add pose check",
+    "add": "pose",
+    "lesson": "Is the whole ligand inside the pocket, and does it overlay the reference pose? This catches a good score for a poor pose."
+   }
+  ],
+  "ligands": [
+   {
+    "id": "ref",
+    "name": "Celecoxib (known reference)",
+    "score": -9.6,
+    "mw": 381,
+    "inside": 100,
+    "overlay": 0
+   },
+   {
+    "id": "A",
+    "name": "Compound A (large, mock)",
+    "score": -10.8,
+    "mw": 528,
+    "inside": 62,
+    "overlay": 5.6
+   },
+   {
+    "id": "B",
+    "name": "Compound B (celecoxib analogue, mock)",
+    "score": -10.1,
+    "mw": 397,
+    "inside": 100,
+    "overlay": 1.2
+   },
+   {
+    "id": "C",
+    "name": "Compound C (small fragment, mock)",
+    "score": -7.0,
+    "mw": 250,
+    "inside": 100,
+    "overlay": 1.6
+   }
+  ]
+ },
+ "decide": {
+  "evidence": [
+   {
+    "id": "e1",
+    "text": "Its docking score (-10.1) is as good as the known reference, celecoxib (-9.6).",
+    "for": "B"
+   },
+   {
+    "id": "e2",
+    "text": "It makes the same key hydrogen bonds as celecoxib (His90, Gln192, Arg513).",
+    "for": "B"
+   },
+   {
+    "id": "e3",
+    "text": "Its pose overlays the celecoxib pose closely (about 1.2 Å) and sits fully in the pocket.",
+    "for": "B"
+   },
+   {
+    "id": "e4",
+    "text": "Its ligand efficiency is similar to celecoxib, so the score is not inflated by size.",
+    "for": "B"
+   },
+   {
+    "id": "e5",
+    "text": "It has the most negative docking score of all compounds.",
+    "wrong": true,
+    "why": "The best score alone is not enough; compound A has it but a poor pose."
+   },
+   {
+    "id": "e6",
+    "text": "It is the largest molecule, so it must bind best.",
+    "wrong": true,
+    "why": "Size inflates scores. Efficiency and pose matter more."
+   },
+   {
+    "id": "e7",
+    "text": "Docking proves it will be active in cells.",
+    "wrong": true,
+    "why": "Docking only predicts binding to one target. It cannot prove activity."
+   }
+  ],
+  "nextSteps": [
+   {
+    "id": "n1",
+    "text": "Check drug-likeness and ADME (can it be absorbed, distributed, metabolised and cleared?).",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Test it in a laboratory binding or activity assay.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Check pose stability with a longer simulation (molecular dynamics) if resources allow.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Report it as a confirmed inhibitor.",
+    "right": false
+   },
+   {
+    "id": "n5",
+    "text": "Skip validation because the score is good.",
+    "right": false
+   }
+  ]
+ },
+ "ligandGroups": {
+  "grease": [
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21
+  ],
+  "fragment": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   16,
+   17,
+   22,
+   23,
+   24,
+   25
+  ],
+  "methyl": 13,
+  "ring": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ]
+ }
+}

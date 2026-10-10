@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CADD with Dr. NAM</title>
+  <meta name="description" content="Interactive concept simulations for computational drug design: docking, virtual screening, ADME and homology modelling.">
+  <meta name="theme-color" content="#060d1b">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    try { if (JSON.parse(localStorage.getItem('cadd:v1') || '{}').theme === 'day') document.documentElement.dataset.theme = 'day'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo-plate" href="#/" aria-label="Home"><img src="brand/logos/uitm-logo-full.png" alt="Universiti Teknologi MARA"></a>
+    <nav class="toolbar" aria-label="Site">
+      <a class="chip" href="#/">Modules</a>
+      <a class="chip" href="#/results">My record</a>
+      <a class="chip" href="#/about">About</a>
+      <button class="chip" id="btn-theme" type="button"></button>
+    </nav>
+    <div class="logo-plate logo-plate--motto"><img src="brand/logos/uitm-di-hatiku-motto.png" alt="UiTM: A Premier University Driving Professional Bumiputera"></div>
+  </header>
+  <main id="app" class="app" tabindex="-1"></main>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <footer class="foot">Teaching simulation with mock data. Not for real drug-design decisions. © Chemistry with Dr. NAM, UiTM.</footer>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
