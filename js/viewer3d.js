@@ -18,6 +18,24 @@ function glowMat(color, a = 1) { const k = `${color}:${a}`; let m = glowMats.get
 /** A soft glowing halo (additive sprite) of the given colour and size in Å. */
 export function glow(pos, color, size = 3, alpha = 1) { const s = new THREE.Sprite(glowMat(color, alpha)); s.position.set(pos[0], pos[1], pos[2]); s.scale.setScalar(size); s.renderOrder = 8; return s; }
 
+/** Rotate a set of points [x,y,z] so their longest direction runs along x and their flattest along z (so a flat molecule faces the camera). Also centres them. */
+export function alignPCA(pts) {
+  const n = pts.length, c = pts.reduce((s2, p) => [s2[0] + p[0] / n, s2[1] + p[1] / n, s2[2] + p[2] / n], [0, 0, 0]), q = pts.map(p => [p[0] - c[0], p[1] - c[1], p[2] - c[2]]);
+  const C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; for (const p of q) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) C[i][j] += p[i] * p[j] / n;
+  // Jacobi eigen-decomposition of the symmetric 3x3 covariance matrix
+  let Vm = [[1, 0, 0], [0, 1, 0], [0, 0, 1]], A = C.map(r => [...r]);
+  for (let it = 0; it < 24; it++) {
+    let p = 0, r = 1, mx = Math.abs(A[0][1]); if (Math.abs(A[0][2]) > mx) { p = 0; r = 2; mx = Math.abs(A[0][2]); } if (Math.abs(A[1][2]) > mx) { p = 1; r = 2; mx = Math.abs(A[1][2]); } if (mx < 1e-10) break;
+    const th = (A[r][r] - A[p][p]) / (2 * A[p][r]), t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1)), cs = 1 / Math.sqrt(t * t + 1), sn = t * cs;
+    const G = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; G[p][p] = cs; G[r][r] = cs; G[p][r] = sn; G[r][p] = -sn;
+    const mul = (X, Y) => X.map((row, i) => [0, 1, 2].map(j => row[0] * Y[0][j] + row[1] * Y[1][j] + row[2] * Y[2][j])), tr = X => X[0].map((_, j) => X.map(row => row[j]));
+    A = mul(tr(G), mul(A, G)); Vm = mul(Vm, G);
+  }
+  const ev = [0, 1, 2].map(i => ({ val: A[i][i], vec: [Vm[0][i], Vm[1][i], Vm[2][i]] })).sort((a, b) => b.val - a.val);
+  const ax = ev[0].vec, ay = ev[1].vec, az = [ax[1] * ay[2] - ax[2] * ay[1], ax[2] * ay[0] - ax[0] * ay[2], ax[0] * ay[1] - ax[1] * ay[0]];
+  return q.map(p => [p[0] * ax[0] + p[1] * ax[1] + p[2] * ax[2], p[0] * ay[0] + p[1] * ay[1] + p[2] * ay[2], p[0] * az[0] + p[1] * az[1] + p[2] * az[2]]);
+}
+
 export function webglOk() {
   try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; }
 }

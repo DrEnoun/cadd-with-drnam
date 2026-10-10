@@ -6,7 +6,7 @@ Interactive, software-agnostic concept simulations for computer-aided drug desig
 |---|---|
 | 1. Molecular Docking | Ready |
 | 2. Virtual Screening | Ready |
-| 3. ADME Prediction | Planned |
+| 3. ADME Prediction | Ready |
 | 4. Homology Modelling | Planned |
 
 ## Module 1 — Molecular Docking
@@ -20,6 +20,11 @@ Every step opens with a "Why do we do this?" box and ends with a check of unders
 Pre-test → Why screen? (3D funnel and your own funnel numbers) → The library (45 real drugs in 3D property space, with an inspector) → Property filters (Lipinski and Veber, with false negatives) → Prepare (salts, duplicates, PAINS, charge, 3D) → Two methods (ligand-based shape overlay vs structure-based score, in the COX-2 pocket) → Did it work? (ROC curves, AUC, enrichment factor) → Pick hits (diversity, alerts, justification, report) → Post-test and survey.
 
 **Real data:** the 45 drugs are real (18 known COX inhibitors and 27 drugs for other targets, including PAINS scaffolds). Properties (molecular weight, cLogP, polar surface area, donors and acceptors, rotatable bonds, Lipinski and PAINS flags) and the 3D shapes are computed with RDKit, and each shape was overlaid on the crystal celecoxib from 3LN1. **Mock:** the docking-style score (it is built from the real overlap and size plus pharmacophore features, with fixed noise) and the funnel numbers. Rebuild the data with `python3 tools/prepare-library.py` (needs `pip install rdkit numpy`). "Active" means a known COX inhibitor in the literature: please check each one before publication.
+
+## Module 3 — ADME Prediction
+Pre-test → The journey (an animated 3D body with stomach and gut, blood, liver and kidneys; match failures to A, D, M or E) → Absorption (a BOILED-Egg style map of 45 real drugs, a movable probe, ESOL solubility and a "does the dose dissolve?" check) → pH and ions (Henderson-Hasselbalch curves and a membrane where only the neutral form crosses) → Metabolism (soft spots glowing on the real 3D molecule, predict the main reaction, compare with the known route) → Half-life (a concentration-time simulator with repeated doses) → Choose (an ADME report card for eight candidates, justification, report) → Post-test and survey.
+
+**Real data:** the 45 drugs and their 3D shapes are the same as Module 2. cLogP (Crippen), polar surface area, ESOL solubility and the soft-spot atoms are computed with RDKit (`python3 tools/prepare-adme.py`). **Simplified or typical values:** the egg ellipses are a teaching approximation of the BOILED-Egg (Daina and Zoete, 2016), not the published model; the soft-spot finder uses simple structural rules; pKa values and pharmacokinetic values (F, V, half-life, ka) are rounded typical adult figures (`data/adme/teaching.json`). Please check them against a standard reference before publication. The pharmacokinetic maths (one-compartment oral model, AUC = F·D/CL, accumulation) is tested in `npm test`.
 
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
@@ -51,6 +56,8 @@ The home-page banner is `assets/img/hero.webp` (2000 px, plus a 1000 px version)
 | `js/modules/registry.js` | List of modules (add one here to add a module) |
 | `js/modules/flow.js` | Shared flow for every module: intro, consent, pre-test, steps, post-test, survey |
 | `js/modules/docking/` | Module 1: `index.js` (its steps) and one file per step |
+| `js/modules/adme/` | Module 3: `stats.js` (pure maths: egg map, ESOL classes, ionisation, pharmacokinetics), `scenes.js` (3D journey and molecule inspector) and one file per step |
+| `data/adme/` | `drugs.json` (RDKit properties, soft spots), `teaching.json`, `quiz.json`; built by `tools/prepare-adme.py` |
 | `js/modules/screening/` | Module 2: `stats.js` (pure maths: filters, ROC, enrichment), `scenes.js` (3D cloud, funnel, inspector) and one file per step |
 | `js/viewer3d.js` | 3D viewer and cartoon parts (atoms, bonds, pocket, box, labels) |
 | `js/modules/docking/geom.js` | Pure 3D maths (poses, RMSD, toy scoring function), tested in Node |

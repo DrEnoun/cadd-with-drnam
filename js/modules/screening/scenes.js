@@ -1,6 +1,6 @@
 // 3D scenes for the virtual screening module: the library in property space, the screening funnel, and a molecule inspector.
 import { h } from '../../ui.js';
-import { createViewer, THREE, ligandGroup, labelSprite, glow, COLORS } from '../../viewer3d.js';
+import { createViewer, THREE, ligandGroup, labelSprite, glow, COLORS, alignPCA } from '../../viewer3d.js';
 import { passes } from './stats.js';
 
 export const GROUP = {
@@ -64,14 +64,13 @@ export function cloudScene(v, lib, { onPick } = {}) {
 
 // ---------------------------------------------------------------- molecule inspector (rotating ball-and-stick)
 export function inspector(host, { height = 280 } = {}) {
-  const v = createViewer(host, { height, autoRotate: true, dist: 17, pitch: .2 });
+  const v = createViewer(host, { height, autoRotate: true, dist: 20, pitch: .15, yaw: 0 });
   let cur = null;
   return {
     v,
     show(c) {
       if (!v) return; if (cur) v.root.remove(cur);
-      const ctr = c.atoms.reduce((s, a) => [s[0] + a[1] / c.atoms.length, s[1] + a[2] / c.atoms.length, s[2] + a[3] / c.atoms.length], [0, 0, 0]);
-      const atoms = c.atoms.map(a => ({ el: a[0], p: [a[1] - ctr[0], a[2] - ctr[1], a[3] - ctr[2]] }));
+      const P = alignPCA(c.atoms.map(a => [a[1], a[2], a[3]])), atoms = c.atoms.map((a, i) => ({ el: a[0], p: P[i] }));
       cur = ligandGroup(atoms, c.bonds, { carbon: GROUP[c.group].color, halo: 2.4 }); v.root.add(cur); v.render();
     },
     dispose() { v?.dispose(); },
