@@ -1,5 +1,5 @@
 // CADD with Dr. NAM: hash router, home, record and about pages.
-import { h, download } from './ui.js';
+import { h, download, art } from './ui.js';
 import { store } from './store.js';
 import { modules, byId } from './modules/registry.js';
 import { exportCsv } from './eval.js';
@@ -24,26 +24,52 @@ async function route() {
     cleanup = mod.default(app, { route: rest, module: m }) || null;
   } else if (page === 'results') record();
   else if (page === 'about') about();
-  else home();
+  else cleanup = home() || null;
   window.scrollTo(0, 0);
+}
+
+/** Subtle life for the banner: slow drift (CSS), a soft light sweep, drifting sparkles and a small pointer parallax. Off for reduced motion. */
+function heroMotion(hero) {
+  if (!hero || matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+  const pic = hero.querySelector('.hero__pic'), sparks = hero.querySelector('.hero__sparks');
+  for (let i = 0; i < 16; i++) {
+    const d = document.createElement('i'), big = i % 5 === 0;
+    d.style.cssText = `--x:${(Math.random() * 100).toFixed(1)}%;--y:${(Math.random() * 100).toFixed(1)}%;--s:${big ? 7 + Math.random() * 5 : 3 + Math.random() * 3}px;--d:${(7 + Math.random() * 9).toFixed(1)}s;--t:${(-Math.random() * 12).toFixed(1)}s;--dx:${(Math.random() * 40 - 20).toFixed(0)}px`;
+    sparks.appendChild(d);
+  }
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, on = true;
+  const loop = () => { cx += (tx - cx) * .06; cy += (ty - cy) * .06; pic.style.setProperty('--px', cx.toFixed(3)); pic.style.setProperty('--py', cy.toFixed(3)); raf = on ? requestAnimationFrame(loop) : 0; };
+  const move = e => { const r = hero.getBoundingClientRect(); tx = ((e.clientX - r.left) / r.width - .5) * 2; ty = ((e.clientY - r.top) / r.height - .5) * 2; };
+  const leave = () => { tx = 0; ty = 0; };
+  hero.addEventListener('pointermove', move); hero.addEventListener('pointerleave', leave);
+  const io = new IntersectionObserver(([en]) => { on = en.isIntersecting; hero.classList.toggle('is-paused', !on); if (on && !raf) raf = requestAnimationFrame(loop); }, { threshold: 0.05 });
+  io.observe(hero); raf = requestAnimationFrame(loop);
+  return () => { on = false; cancelAnimationFrame(raf); io.disconnect(); hero.removeEventListener('pointermove', move); hero.removeEventListener('pointerleave', leave); };
 }
 
 function home() {
   document.title = 'CADD with Dr. NAM';
   app.append(
-    h('section', { class: 'hero' },
-      h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
-      h('div', {},
-        h('p', { class: 'eyebrow' }, 'Chemistry with Dr. NAM'),
-        h('h1', {}, 'CADD with Dr. NAM'),
-        h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations with mock data, so they work with any software you use later.'))),
+    h('section', { class: 'hero hero--stack' },
+      h('div', { class: 'hero__pic' }, h('div', { class: 'hero__plx' }, art('hero', 'Colourful illustration of a protein with a drug in its pocket, a laptop running a simulation, a funnel filtering candidate molecules, and a capsule with arrows to the liver, kidney, gut and blood.', { eager: true, sizes: '100vw', cls: 'hero__img', small: 1000, full: 2000, ratio: 711 / 2000 })), h('div', { class: 'hero__sparks', 'aria-hidden': 'true' }), h('div', { class: 'hero__sheen', 'aria-hidden': 'true' })),
+      h('div', { class: 'hero__content' },
+        h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
+        h('div', {},
+          h('p', { class: 'eyebrow' }, 'Chemistry with Dr. NAM'),
+          h('h1', {}, 'CADD with Dr. NAM'),
+          h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations, so they work with any software you use later.'),
+          h('a', { class: 'btn-start', href: '#/docking', style: 'text-decoration:none' }, 'Start Module 1 →')))),
+    h('h2', { class: 'section-title' }, 'Four modules'),
     h('div', { class: 'mods' }, modules.map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
-      h('span', { class: 'mod__n' }, `Module ${m.n}`),
-      h('h3', {}, m.title), h('p', {}, m.blurb),
-      m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : h('span', { class: 'tag tag--soon' }, 'Coming soon')))),
+      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
+      h('div', { class: 'mod__body' },
+        h('span', { class: 'mod__n' }, `Module ${m.n}`),
+        h('h3', {}, m.title), h('p', {}, m.blurb),
+        m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : null)))),
     h('section', { class: 'glass stack' },
       h('h2', {}, 'How each module works'),
-      h('p', {}, '1. A short pre-test shows what you already know. 2. You work through the steps as a mission, and every step starts with “Why do we do this?”. 3. The final step asks you to decide and justify, like a real project. 4. A post-test and short survey finish the module.')));
+      h('div', { class: 'howto' }, [['1', 'Pre-test', 'A short test shows what you already know.'], ['2', 'The mission', 'Work through the steps. Every step starts with “Why do we do this?”.'], ['3', 'Decide', 'The last step asks you to choose and justify, like a real project.'], ['4', 'Post-test', 'The same questions again, then a short survey.']].map(([n, t, d]) => h('div', { class: 'howto__item' }, h('b', {}, n), h('div', {}, h('strong', {}, t), h('p', {}, d)))))));
+  return heroMotion(app.querySelector('.hero--stack'));
 }
 
 function record() {
@@ -71,9 +97,9 @@ function about() {
     h('h1', {}, 'About'),
     h('p', {}, 'CADD with Dr. NAM is a set of interactive concept simulations for computer-aided drug design. It teaches the fundamental ideas and workflow behind each technique, whatever software students use later.'),
     h('p', {}, h('strong', {}, 'The protein and drug in Module 1 are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
-    h('p', {}, 'Modules: 1 Molecular Docking (ready), 2 Virtual Screening, 3 ADME Prediction, 4 Homology Modelling (coming).'),
+    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n}. ${m.title}${m.status === 'ready' ? '' : ' (coming)'}`)))),
     h('p', {}, 'Privacy: the site has no server and collects nothing. Your progress and answers are stored in your own browser, and you choose whether to download and submit them.'),
-    h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content.')));
+    h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content. The module illustrations are artistic, not to scale, and were supplied by the author.')));
 }
 
 addEventListener('hashchange', route);

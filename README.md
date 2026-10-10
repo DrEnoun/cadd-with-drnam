@@ -34,6 +34,9 @@ No build step: plain HTML, CSS and ES modules.
 ## Put it on GitHub Pages
 Repository **Settings → Pages → Build and deployment → Deploy from a branch → `main` / root**. The site appears at `https://<owner>.github.io/<repo>/`.
 
+## Artwork
+The home-page banner is `assets/img/hero.webp` (2000 px, plus a 1000 px version); the earlier dark banner is kept as `hero-dark.webp` if you want to switch back. The module pictures are in `assets/img/` (WebP, 1600 px and 800 px versions, loaded lazily with `srcset`). They are artistic illustrations supplied by the author, not to scale, and are used for the home page, module cards, module banners and the About page. Add `name.webp` and `name-800.webp` and set `art` in `js/modules/registry.js` to use a new one. If you publish, state the source of the illustrations (and whether they are AI-generated) as the journal requires.
+
 ## Structure
 | Path | What |
 |---|---|
