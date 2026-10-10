@@ -212,3 +212,10 @@ select option { background: #ffffff; color: #231f20; }
 @media (prefers-reduced-motion: reduce) { .hero--stack .hero__img, .hero__sheen, .hero__sparks i { animation: none !important; } .hero__sparks, .hero__sheen { display: none; } .hero__plx { transform: none; } .hero--stack .hero__img { transform: scale(1.01); } }
 .tbl tr.is-cur td { font-weight: 700; }
 .tbl tr.is-pick { background: color-mix(in srgb, var(--spark-400) 16%, transparent); }
+
+/* Back to the main page */
+.modbar { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin: 4px 0 6px; }
+.modbar .stepper { margin: 0; flex: 1 1 320px; }
+.back-main { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; min-height: 44px; padding: 6px 16px; }
+.nav .back-main--mid { margin: 0 auto; }
+@media (max-width: 640px) { .nav { gap: 10px; } .nav .back-main--mid { order: 3; width: 100%; justify-content: center; margin: 0; } .modbar .back-main { width: 100%; justify-content: center; } }

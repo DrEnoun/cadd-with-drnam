@@ -5,6 +5,9 @@ import { h, fetchJson, art } from '../ui.js';
 import { store } from '../store.js';
 import { consentScreen, runTest, runSurvey, exportCsv } from '../eval.js';
 
+/** The same 'back to the main page' button everywhere in a module. */
+const backBtn = (cls = '') => h('a', { class: `sticker back-main ${cls}`.trim(), href: '#/', 'aria-label': 'Back to the main page' }, '⌂ Back to main page');
+
 export default function mountModule(def, host, ctx) {
   const M = def.id, STEPS = def.steps;
   let alive = true, stepStart = 0, current = null, stepCleanup = null;
@@ -15,11 +18,11 @@ export default function mountModule(def, host, ctx) {
 
   function stepper(active) {
     const items = [{ id: 'pre', title: 'Pre-test' }, ...STEPS, { id: 'finish', title: 'Post-test' }];
-    return h('ol', { class: 'stepper', 'aria-label': 'Progress' }, items.map((s, i) => {
+    return h('div', { class: 'modbar' }, backBtn(), h('ol', { class: 'stepper', 'aria-label': 'Progress' }, items.map((s, i) => {
       const done = s.id === 'pre' ? !!store.test(M, 'pre') : s.id === 'finish' ? store.isDone(M, 'finish') : store.isDone(M, s.id);
       return h('li', {}, h('a', { href: `#/${M}/${s.id}`, class: `${s.id === active ? 'is-current' : ''} ${done ? 'is-done' : ''}`, 'aria-current': s.id === active ? 'step' : null },
         h('b', {}, h('span', {}, i + 1)), s.title));
-    }));
+    })));
   }
 
   async function show() {
@@ -47,7 +50,7 @@ export default function mountModule(def, host, ctx) {
       done: info => store.stepDone(M, step.id, info),
       nav(extraDisabled = false) {
         const nextBtn = h('button', { class: 'btn-start', type: 'button', disabled: (extraDisabled && !store.isDone(M, step.id)) || null, onclick: () => go(next) }, next === 'finish' ? 'Finish: post-test →' : 'Next step →');
-        return h('div', { class: 'nav' }, h('a', { class: 'sticker', style: 'text-decoration:none;display:inline-flex;align-items:center', href: `#/${M}/${i === 0 ? '' : STEPS[i - 1].id}` }, '← Back'), nextBtn);
+        return h('div', { class: 'nav' }, h('a', { class: 'sticker', style: 'text-decoration:none;display:inline-flex;align-items:center', href: `#/${M}/${i === 0 ? '' : STEPS[i - 1].id}` }, '← Back'), backBtn('back-main--mid'), nextBtn);
       },
       unlockNext() { const b = body.querySelector('.nav .btn-start'); if (b) b.disabled = false; },
     };
@@ -57,7 +60,7 @@ export default function mountModule(def, host, ctx) {
 
   function intro() {
     const n = def.number;
-    host.append(h('section', { class: 'banner' }, art(def.art, '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, `Module ${n}`), h('h1', {}, def.title), h('p', { class: 'lead' }, def.blurb))),
+    host.append(h('div', { class: 'modbar' }, backBtn()), h('section', { class: 'banner' }, art(def.art, '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, `Module ${n}`), h('h1', {}, def.title), h('p', { class: 'lead' }, def.blurb))),
       h('section', { class: 'glass stack', style: 'margin-top:20px' },
       h('p', { class: 'lead' }, def.intro),
       h('h3', {}, 'By the end you can:'),
@@ -98,7 +101,7 @@ export default function mountModule(def, host, ctx) {
         h('div', { class: 'row' },
           h('button', { class: 'btn-start btn-start--small', type: 'button', onclick: exportCsv }, 'Download my record (CSV)'),
           h('a', { class: 'sticker', style: 'text-decoration:none', href: '#/results' }, 'See my record'),
-          h('a', { class: 'sticker', style: 'text-decoration:none', href: '#/' }, 'Back to modules')));
+          h('a', { class: 'sticker', style: 'text-decoration:none', href: '#/' }, '⌂ Back to main page')));
     };
     if (post && store.isDone(M, 'finish')) return summary();
     if (post) return doSurvey();
