@@ -141,3 +141,25 @@ assert.ok(hs.rama[Math.floor((-45 + 180) / 10)][Math.floor((-60 + 180) / 10)] ==
 hT.why.scenarios.forEach(s => assert.ok(hT.why.approaches.some(a => a.id === s.answer)));
 hq.forEach(q => assert.ok(q.options.length >= 3 && q.options[q.answer] != null && q.why, q.id));
 console.log('Homology data and maths OK');
+
+// ---------- Module 5: network pharmacology
+import * as NW from '../js/modules/network/stats.js';
+const nd = J('data/network/network.json'), nT = J('data/network/teaching.json'), nq = J('data/network/quiz.json').questions;
+for (const [a, b, s] of nd.edges) assert.ok(nd.genes[a] && nd.genes[b] && s > 0 && s <= 1, `${a}-${b}`);
+Object.keys(nd.targets).forEach(g => assert.ok(nd.genes[g] && nd.disease[g], g)); nd.pathways.forEach(p => p.members.forEach(g => assert.ok(nd.genes[g], g)));
+const nct = NW.compoundTargets(nd.targets), ndz = NW.diseaseGenes(nd.disease), nov = NW.intersect(nct, ndz);
+assert.ok(nov.length >= 10 && nov.length <= 25 && nov.includes('PTGS2') && !nov.includes('CA9'), 'overlap size');
+assert.ok(!NW.compoundTargets(nd.targets, { minProb: .1, useB: false }).includes('CA9') && NW.compoundTargets(nd.targets, { minProb: 0.05, useB: false }).includes('PDPK1'), 'tool A threshold');
+// graph measures on a path of 5 nodes: the middle one is the bridge
+const pg = NW.buildGraph(['a', 'b', 'c', 'd', 'e'], [['a', 'b', 1], ['b', 'c', 1], ['c', 'd', 1], ['d', 'e', 1]], .5), pb = NW.betweenness(pg), pc = NW.closeness(pg);
+assert.ok(Math.abs(pb[2] - 4 / 6) < 1e-9 && pb[0] === 0 && NW.degree(pg).join() === '1,2,2,2,1' && pc[2] > pc[0], 'path graph');
+const star = NW.buildGraph(['h', 'x', 'y', 'z'], [['h', 'x', 1], ['h', 'y', 1], ['h', 'z', 1]], .5); assert.ok(NW.betweenness(star)[0] === 1 && NW.components(NW.removeNode(['h', 'x', 'y', 'z'], [['h', 'x', 1], ['h', 'y', 1], ['h', 'z', 1]], 'h', .5)).count === 3, 'removing the hub splits the star');
+const ng = NW.buildGraph(nov, nd.edges, .7); assert.ok(NW.components(ng).count === 1 && NW.hubTable(ng)[0].degree >= 8 && NW.buildGraph(nov, nd.edges, .95).edges.length < ng.edges.length);
+// hypergeometric: P(X >= 1) with K = 1 of N = 10, n = 3 is 0.3; exact tail checks; BH
+assert.ok(Math.abs(NW.hyperP(10, 1, 3, 1) - 0.3) < 1e-9 && Math.abs(NW.hyperP(10, 4, 3, 0) - 1) < 1e-9 && Math.abs(NW.hyperP(10, 4, 3, 3) - 4 / 120) < 1e-9, 'hypergeometric tail');
+const qv = NW.bh([.01, .04, .03, .5]); assert.ok(Math.abs(qv[0] - .04) < 1e-9 && Math.abs(qv[1] - .0533333) < 1e-5 && Math.abs(qv[2] - .0533333) < 1e-5 && qv[3] === .5, 'BH');
+const hbs = NW.hubs(NW.hubTable(ng), 8), eg = NW.enrich(hbs, nd.pathways, { background: 'genome' }), en = NW.enrich(hbs, nd.pathways, { background: 'network', universe: [...new Set([...nct, ...ndz])] });
+assert.ok(eg[0].q < 1e-4 && en[0].q > eg[0].q, 'a whole-genome background gives much stronger p-values than a study background');
+assert.ok(NW.layout3d(nov, ng.edges).every(p => p.every(Number.isFinite)) && NW.layout3d(nov, ng.edges)[0][0] === NW.layout3d(nov, ng.edges)[0][0]);
+nT.why.questions.forEach(q => assert.ok(q.options[q.answer] != null)); assert.ok(nT.decide.claims.some(c => c.ok) && nT.hubs.options[nT.hubs.answer]); nq.forEach(q => assert.ok(q.options.length >= 3 && q.options[q.answer] != null && q.why, q.id));
+console.log('Network pharmacology data and maths OK');

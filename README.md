@@ -31,6 +31,11 @@ Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate
 - Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
 - Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
 
+## Module 5 — Network Pharmacology
+Celecoxib and inflammation. Steps: why a network → targets (tool thresholds and a live Venn diagram) → interaction network (confidence cut-off) → hubs (degree, betweenness, closeness; remove a node; study bias) → pathway enrichment (hypergeometric test, Benjamini-Hochberg, choice of background, bubble chart) → decide and download a report. The workflow follows the NAM-NPeasy protocol (Dr Nur 'Ainun Mokhtar).
+- Real: the network mathematics (tested in `npm test`).
+- Mock, and labelled as such: the data set (`data/network/network.json`, built by `tools/make-network-data.py`) is hand-written teaching data. Prediction probabilities, disease scores, interaction confidences, pathway sizes and the "studied" ratings are illustrative, not exports from SwissTargetPrediction, GeneCards, DisGeNET, STRING or KEGG. The "known" labels on celecoxib targets must be checked against the literature. To use real data, replace the file with exports in the same format.
+
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
 - **Pre-test and post-test** with the same 10 concept questions (`data/docking/quiz.json`), with explanations after the post-test.
