@@ -22,19 +22,44 @@ export const makePose = (axis = [0, 0, 1], deg = 0, t = [0, 0, 0]) => ({ R: rotM
 export const place = (pts, pose, c = centroid(pts)) => pts.map(p => add(add(apply(pose.R, sub(p, c)), c), pose.t));
 export const rmsd = (a, b) => Math.sqrt(a.reduce((s, p, i) => s + dist(p, b[i]) ** 2, 0) / a.length);
 
-/** Toy scoring function used in the "Search and score" step (mock units, kcal/mol).
- *  pts: ligand atoms [{el, p}] already placed. env: data.pocket3d. */
+const isPolar = el => el === 'N' || el === 'O';
+/** Hydrogen bonds (N/O to N/O within 3.4 Å) and hydrophobic residues (2 or more C-C contacts within 4.2 Å) of a set of ligand atoms [{el,p}]
+ *  against structure.pocket residues. */
+export function contacts(atoms, pocket, { hb = 3.4, hy = 4.2 } = {}) {
+  const hbonds = [], hydrophobic = [];
+  for (const r of pocket) {
+    let nC = 0;
+    r.atoms.forEach(([el, x, y, z, name]) => {
+      atoms.forEach((a, i) => {
+        const d = dist(a.p, [x, y, z]);
+        if (isPolar(el) && isPolar(a.el) && d <= hb) hbonds.push({ res: r.label, atomName: name, atom: i, d, pos: [x, y, z] });
+        if (el === 'C' && (a.el === 'C' || a.el === 'F') && d <= hy) nC++;
+      });
+    });
+    if (nC >= 2) hydrophobic.push(r.label);
+  }
+  return { hbonds, hydrophobic };
+}
+/** Build the scoring environment from a prepared structure (data/docking/cox2.json) and the crystal ligand atoms. */
+export function makeEnv(structure, greaseIdx, prefer = ['HIS90', 'GLN192', 'ARG513', 'LEU352']) {
+  const lig = structure.ligand.atoms.map(a => ({ el: a[0], p: [a[1], a[2], a[3]] }));
+  const seen = new Set(), pairs = [], all = contacts(lig, structure.pocket).hbonds.sort((a, b) => a.d - b.d);
+  for (const r of prefer) { const h = all.find(x => x.res === r); if (h && !seen.has(r)) { seen.add(r); pairs.push(h); } }
+  return { hbondPairs: pairs, greaseIdx, greaseCentre: centroid(greaseIdx.map(i => lig[i].p)), near: structure.near.map(n => ({ el: n[0], p: [n[1], n[2], n[3]] })) };
+}
+/** Toy scoring function used in the "Search and score" step (mock units, kcal/mol). atoms: placed ligand [{el,p}]. */
 export function scorePose(atoms, env) {
-  const pos = i => atoms[i].p;
   let hb = 0; const bonds = [];
-  for (const h of env.hbondPairs) { const d = dist(pos(h.atom), env.residues[h.res].pos); const e = -1.0 * Math.exp(-(((d - 2.8) / 1.2) ** 2)); hb += e; bonds.push({ res: h.res, d, e }); }
-  const ring = centroid(env.ring.map(pos));
-  const hy = -3.0 * Math.exp(-((dist(ring, env.greaseCentre) / 2.5) ** 2));
-  let clash = 0;
-  for (const a of atoms) for (const r of Object.values(env.residues)) if (r.type === 'hydrophobic') clash += Math.max(0, 2.6 - dist(a.p, r.pos)) * 2.0;
-  const out = atoms.filter(a => len(a.p) > env.cavityRadius).length;
-  const total = Math.min(-1.5 + hb + hy + clash + out * 0.8, 6);
-  return { total, hb, hy, clash, out, bonds };
+  for (const h of env.hbondPairs) { const d = dist(atoms[h.atom].p, h.pos); const e = -0.9 * Math.exp(-(((d - 2.9) / 1.0) ** 2)); hb += e; bonds.push({ res: h.res, atom: h.atom, pos: h.pos, d, e }); }
+  const hy = -3.0 * Math.exp(-((dist(centroid(env.greaseIdx.map(i => atoms[i].p)), env.greaseCentre) / 3.5) ** 2));
+  let clash = 0, clashAtoms = 0;
+  for (const a of atoms) { let hit = false; for (const n of env.near) {
+    const d = dist(a.p, n.p), lim = isPolar(a.el) && isPolar(n.el) ? 2.5 : 3.0;
+    if (d < lim) { clash += (lim - d) * 1.5; hit = true; }
+  } if (hit) clashAtoms++; }
+  let burial = 0; for (const a of atoms) { let n = 0; for (const q of env.near) if (dist(a.p, q.p) < 6) n++; burial -= Math.min(n, 14) / 14 * 0.06; }
+  const total = Math.min(-0.8 + hb + hy + Math.min(clash, 5) + burial, 6);
+  return { total, hb, hy, clash, clashAtoms, burial, out: 0, bonds };
 }
 
 /** RMSD between the crystal ligand and a mock docked pose given as { rot: [ax, ay, az, deg], t }. */

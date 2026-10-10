@@ -2,11 +2,11 @@
 // a cut-away protein with a pocket, residue sticks, boxes and dashed hydrogen bonds. Mouse and touch.
 import * as THREE from '../vendor/three/three.module.js';
 import { h } from './ui.js';
-import { unit, scale as vscale } from './modules/docking/geom.js';
+import { unit } from './modules/docking/geom.js';
 
 export { THREE };
-export const COLORS = { C: 0xd4ff3a, N: 0x4d8dff, O: 0xff5a5a, S: 0xffd23a, H: 0xffffff, rC: 0x5eead4 };
-const RADIUS = { C: 0.55, N: 0.52, O: 0.5, S: 0.7, H: 0.35 };
+export const COLORS = { C: 0xd4ff3a, N: 0x4d8dff, O: 0xff5a5a, S: 0xffd23a, H: 0xffffff, F: 0x6fe06f, FE: 0xe0752b, CL: 0x6fe06f, rC: 0x5eead4 };
+const RADIUS = { C: 0.55, N: 0.52, O: 0.5, S: 0.7, F: 0.45, H: 0.35 };
 const V = a => new THREE.Vector3(a[0], a[1], a[2]);
 
 export function webglOk() {
@@ -19,6 +19,7 @@ export function createViewer(host, { height = 420, autoRotate = false, dist = 56
   const wrap = h('div', { class: 'view3d', style: `height:${height}px` });
   host.append(wrap);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.localClippingEnabled = true;
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   wrap.append(renderer.domElement);
   renderer.domElement.setAttribute('role', 'img');
@@ -146,41 +147,46 @@ export function boxGroup() {
   return g;
 }
 
-// ---------------------------------------------------------------- the pocket (a cut-away protein)
-function lumpy(r, amp, cutDeg) {
-  const g = new THREE.SphereGeometry(r, 72, 54), pos = g.attributes.position, v = new THREE.Vector3();
-  for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i).normalize(); const f = 1 + amp * (.5 * Math.sin(3 * v.x + 1) + .35 * Math.sin(4 * v.y + 2) + .3 * Math.sin(5 * v.z)); pos.setXYZ(i, v.x * r * f, v.y * r * f, v.z * r * f); }
-  const idx = g.index.array, keep = [], c = Math.cos(cutDeg * Math.PI / 180), tri = new THREE.Vector3();
-  for (let i = 0; i < idx.length; i += 3) { tri.set(0, 0, 0); for (let k = 0; k < 3; k++) tri.add(v.fromBufferAttribute(pos, idx[i + k])); tri.normalize(); if (tri.z < c) keep.push(idx[i], idx[i + 1], idx[i + 2]); }
-  g.setIndex(keep); g.computeVertexNormals(); return g;
+// ---------------------------------------------------------------- the real protein (a cut-away ribbon with the pocket residues)
+function bicolor(g, a, b, ca, cb, r) {
+  const m = [a[0] / 2 + b[0] / 2, a[1] / 2 + b[1] / 2, a[2] / 2 + b[2] / 2];
+  g.add(stick(a, m, r, ca), stick(m, b, r, cb));
 }
-/** The pocket scene. env = data.pocket3d. Returns a group; env.residues are drawn as sticks, labels and groups. */
-export function pocketGroup(env, { showResidues = Object.keys(env.residues), highlight = [], labels = true } = {}) {
-  const g = new THREE.Group(), R = env.cavityRadius, S = env.shellRadius, cut = env.openingDeg;
-  const shell = new THREE.Mesh(lumpy(S, .04, cut), new THREE.MeshStandardMaterial({ color: 0x2fb3a8, roughness: .55, transparent: true, opacity: .22, side: THREE.DoubleSide, depthWrite: false }));
-  const cavity = new THREE.Mesh(lumpy(R, .02, cut), new THREE.MeshStandardMaterial({ color: 0x2b86a8, roughness: .7, transparent: true, opacity: .8, side: THREE.BackSide }));
-  const ca = cut * Math.PI / 180, rimH = (S - R) * Math.cos(ca), rimGeo = new THREE.CylinderGeometry(S * Math.sin(ca), R * Math.sin(ca), rimH, 64, 1, true);
-  const rim = new THREE.Mesh(rimGeo, new THREE.MeshStandardMaterial({ color: 0x5eead4, roughness: .5, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false }));
-  rim.rotation.x = Math.PI / 2; rim.position.z = (S + R) / 2 * Math.cos(ca);
-  g.add(shell, cavity, rim);
-  // cartoon helices wound around the outside
-  const dirs = [[-1, .2, -.1, .2, -1, -.3], [.3, -1, -.4, 1, -.2, -.2], [-.2, 1, -.1, -1, .3, -.4], [1, .5, -.3, .1, 1, -.1], [-.6, -.3, -1, .7, -.2, -1], [.2, .1, -1, -.8, -.5, -.7]];
-  dirs.forEach((d, k) => {
-    const a = new THREE.Vector3(d[0], d[1], d[2]).normalize(), b = new THREE.Vector3(d[3], d[4], d[5]).normalize(), pts = [], N = 70;
-    const axis = a.clone().cross(b).normalize(), ang = a.angleTo(b);
-    for (let i = 0; i <= N; i++) { const t = i / N, dir = a.clone().applyAxisAngle(axis, ang * t), side = axis.clone().cross(dir).normalize(), ph = t * Math.PI * 2 * 7;
-      pts.push(dir.clone().multiplyScalar(S + .5).addScaledVector(side, Math.cos(ph) * 1.5).addScaledVector(dir, Math.sin(ph) * 1.5)); }
-    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 160, .45, 8), glossy([COLORS.C, 0x5eead4, 0x7fb6ff][k % 3], 1)); g.add(m);
-  });
-  // residues
-  for (const name of showResidues) {
-    const r = env.residues[name]; if (!r) continue;
-    const W = vscale(unit(r.pos), R + .3), isH = r.type === 'hydrophobic', isHi = highlight.includes(name);
-    g.add(stick(W, r.pos, .26, COLORS.rC));
-    const tip = isH ? ball(0x9fb3b8, 1.35, .85, false) : ball(r.type === 'donor' ? COLORS.N : COLORS.O, .62);
-    tip.position.copy(V(r.pos)); g.add(tip);
-    if (isHi) { const ring = new THREE.Mesh(new THREE.TorusGeometry(1.15, .1, 8, 28), new THREE.MeshBasicMaterial({ color: 0xfc7a7a, depthTest: false, transparent: true })); ring.position.copy(V(r.pos)); ring.renderOrder = 9; ring.userData.billboard = true; g.add(ring); }
-    if (labels) { const l = labelSprite(name, { size: 4.2 }); l.position.copy(V(vscale(unit(r.pos), R + 2.4))); g.add(l); }
+const CUT = [new THREE.Plane(new THREE.Vector3(0, 0, -1), 3)]; // hides the front half of the ribbon so the pocket can be seen
+function ribbon(ca) {
+  const g = new THREE.Group(), segs = []; let cur = [];
+  ca.forEach((c, i) => { if (i && Math.hypot(c[0] - ca[i - 1][0], c[1] - ca[i - 1][1], c[2] - ca[i - 1][2]) > 4.6) { segs.push(cur); cur = []; } cur.push(c); });
+  segs.push(cur);
+  const mat = { 0: 0xcfe3ea, 1: 0x2fb3a8, 2: 0x4d8dff }, rad = { 0: .32, 1: .75, 2: .55 };
+  for (const seg of segs) {
+    let i = 0;
+    while (i < seg.length) {
+      let j = i; while (j + 1 < seg.length && seg[j + 1][3] === seg[i][3]) j++;
+      const pts = seg.slice(Math.max(0, i - 1), Math.min(seg.length, j + 2)).map(c => new THREE.Vector3(c[0], c[1], c[2]));
+      if (pts.length >= 2) {
+        const curve = pts.length > 2 ? new THREE.CatmullRomCurve3(pts, false, 'catmullrom', .5) : new THREE.LineCurve3(pts[0], pts[1]);
+        const m = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(4, pts.length * 4), rad[seg[i][3]], 8, false),
+          new THREE.MeshStandardMaterial({ color: mat[seg[i][3]], roughness: .45, metalness: .05, clippingPlanes: CUT, side: THREE.DoubleSide }));
+        g.add(m);
+      }
+      i = j + 1;
+    }
+  }
+  return g;
+}
+/** The protein scene from data/docking/cox2.json. opts: labels (residue labels to name), highlight (labels to ring), show ('all' | labels). */
+export function pocketGroup(st, { labels = [], highlight = [], show = 'all', ribbon: withRibbon = true, heme = true } = {}) {
+  const g = new THREE.Group();
+  if (withRibbon) g.add(ribbon(st.ca));
+  if (heme && st.heme?.atoms.length) { const at = st.heme.atoms; st.heme.bonds.forEach(([i, j]) => bicolor(g, at[i].slice(1), at[j].slice(1), at[i][0] === 'C' ? 0xff9f43 : COLORS[at[i][0]] ?? 0xff9f43, at[j][0] === 'C' ? 0xff9f43 : COLORS[at[j][0]] ?? 0xff9f43, .12)); }
+  for (const r of st.pocket) {
+    if (show !== 'all' && !show.includes(r.label)) continue;
+    const at = r.atoms;
+    r.bonds.forEach(([i, j]) => bicolor(g, at[i].slice(1, 4), at[j].slice(1, 4), COLORS[at[i][0]] ?? COLORS.rC, COLORS[at[j][0]] ?? COLORS.rC, .13));
+    at.forEach(a => { if (a[0] !== 'C') { const b = ball(COLORS[a[0]] ?? 0xcccccc, .3, 1, false); b.position.set(a[1], a[2], a[3]); g.add(b); } });
+    const ctr = at.reduce((s, a) => [s[0] + a[1] / at.length, s[1] + a[2] / at.length, s[2] + a[3] / at.length], [0, 0, 0]);
+    if (highlight.includes(r.label)) { const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, .12, 8, 32), new THREE.MeshBasicMaterial({ color: 0xfc7a7a, depthTest: false, transparent: true })); ring.position.set(...ctr); ring.renderOrder = 9; ring.userData.billboard = true; g.add(ring); }
+    if (labels.includes(r.label)) { const l = labelSprite(r.label, { size: 5 }); const o = unit(ctr); l.position.set(ctr[0] + o[0] * 3.2, ctr[1] + o[1] * 3.2 + 1, ctr[2] + o[2] * 3.2); g.add(l); }
   }
   return g;
 }

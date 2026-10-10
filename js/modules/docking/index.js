@@ -42,7 +42,7 @@ export default function mount(host, ctx) {
     const i = STEPS.findIndex(s => s.id === sub);
     if (i < 0) return go('');
     const step = STEPS[i];
-    const data = await fetchJson('data/docking/mock.json');
+    const data = await fetchJson('data/docking/mock.json'); data.structure = await fetchJson('data/docking/cox2.json');
     const mod = await step.load();
     if (!alive) return;
     host.append(stepper(step.id));

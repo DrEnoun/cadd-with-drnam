@@ -9,12 +9,12 @@ export function render(host, api) {
   const B = api.data.box, box = { c: [...B.start.c], s: B.start.s };
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'The program only searches inside the box. The box tells it where to look: too small and the right answer is outside the box, too big and the search wastes time and finds many false poses.'),
-    h('p', {}, 'The red glow marks the region the box must cover: the whole binding pocket around the known ligand. Move the box over it and set its size. A common rule is a box a little larger than the pocket, with a margin of several Å around it.'));
-  const v = viewer(host, { height: 460, dist: 62 });
+    h('p', {}, 'The red glow marks the region the box must cover: the whole binding pocket around celecoxib, the known ligand. Move the box over it and set its size. A common rule is a box a little larger than the pocket, with a margin of several Å around it.'));
+  const v = viewer(host, { height: 460, dist: 56 });
   const bg = boxGroup();
   if (v) {
     const glow = new THREE.Mesh(new THREE.SphereGeometry(B.pocketRadius, 32, 24), new THREE.MeshBasicMaterial({ color: 0xfc7a7a, transparent: true, opacity: .22, depthWrite: false }));
-    v.root.add(pocketGroup(api.data.pocket3d, { labels: false, showResidues: [] }), ligandGroup(ligandAtoms(api.data), api.data.ligand3d.bonds), glow, bg);
+    v.root.add(pocketGroup(api.data.structure, { show: [] }), ligandGroup(ligandAtoms(api.data), api.data.structure.ligand.bonds), glow, bg);
     v.onDrag = (mode, dx, dy, c) => { if (mode === 'move') { box.c = add(box.c, add(scale(c.right, dx * c.perPx), scale(c.up, -dy * c.perPx))); draw(); } };
   }
   const info = h('div', {}), fill = h('i');

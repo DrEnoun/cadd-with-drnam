@@ -70,7 +70,7 @@ function about() {
   app.append(h('section', { class: 'glass stack' },
     h('h1', {}, 'About'),
     h('p', {}, 'CADD with Dr. NAM is a set of interactive concept simulations for computer-aided drug design. It teaches the fundamental ideas and workflow behind each technique, whatever software students use later.'),
-    h('p', {}, h('strong', {}, 'All molecules, scores and results are mock data made for teaching. '), 'They are not real experiments and must not be used for real drug-design decisions.'),
+    h('p', {}, h('strong', {}, 'The protein and drug in Module 1 are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
     h('p', {}, 'Modules: 1 Molecular Docking (ready), 2 Virtual Screening, 3 ADME Prediction, 4 Homology Modelling (coming).'),
     h('p', {}, 'Privacy: the site has no server and collects nothing. Your progress and answers are stored in your own browser, and you choose whether to download and submit them.'),
     h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content.')));

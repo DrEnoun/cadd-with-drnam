@@ -1,7 +1,7 @@
 // Step 2 — Search and score, in 3D. The student acts as the search algorithm, then watches the computer try many poses.
 import { h } from '../../ui.js';
 import { modeBar, THREE } from '../../viewer3d.js';
-import { rotMat, mul, makePose, place, scorePose, IDENT, cross, scale, add, unit } from './geom.js';
+import { rotMat, mul, place, scorePose, makeEnv, scale, add, unit } from './geom.js';
 import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints } from './view.js';
 import { quizlet } from './quizlet.js';
 
@@ -9,15 +9,15 @@ const rnd = () => Math.random(), gauss = () => (rnd() + rnd() + rnd() + rnd() - 
 const randAxis = () => unit([gauss(), gauss(), gauss()]);
 
 export function render(host, api) {
-  const D = api.data, env = { ...D.pocket3d, ring: D.ligand3d.ring }, base = ligandPoints(D), els = D.ligand3d.atoms.map(a => a[0]);
+  const D = api.data, st = D.structure, env = makeEnv(st, D.ligandGroups.grease), base = ligandPoints(D), els = st.ligand.atoms.map(a => a[0]);
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Every docking program does two jobs: it ', h('strong', {}, 'searches'), ' many positions and orientations of the ligand, and it ', h('strong', {}, 'scores'), ' each one. Understanding this pair explains almost everything else, including why the search box matters and why scores are only estimates.'),
-    h('p', {}, 'Try it yourself: put the ligand into the pocket. Use the buttons to choose what dragging does. A ', h('strong', {}, 'good pose'), ' makes three hydrogen bonds (yellow dots between the ligand and the red or blue residue tips), sits the flat ring against the greasy residues (grey balls), and keeps every atom inside the pocket.'));
-  const pose = { R: rotMat([1, 1, 0], 110), t: [7, -5, -3] }; let best = Infinity;
-  const v = viewer(host, { height: 460, dist: 46 });
-  const lig = ligandGroup(ligandAtoms(D), D.ligand3d.bonds); const ghosts = new THREE.Group();
+    h('p', {}, 'Try it yourself: put the ligand into the pocket. Use the buttons to choose what dragging does. A ', h('strong', {}, 'good pose'), ' makes the hydrogen bonds of the sulfonamide group (yellow dots), tucks the greasy rings and CF₃ group into the hydrophobic channel, and has no clashes with the protein. Hint: the sulfonamide (the yellow S with two red O and a blue N) belongs near His90, Gln192 and Arg513.'));
+  const pose = { R: rotMat([0, 1, 1], 70), t: [3, -2, 2] }; let best = Infinity;
+  const v = viewer(host, { height: 460, dist: 34 });
+  const lig = ligandGroup(ligandAtoms(D), st.ligand.bonds); const ghosts = new THREE.Group();
   const hbLines = new THREE.Group();
-  if (v) { v.root.add(pocketGroup(D.pocket3d, { highlight: ['ASP86', 'GLU64', 'LYS33'] }), lig, ghosts, hbLines); v.view({ yaw: .15, pitch: .15 }); }
+  if (v) { v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513', 'LEU352', 'SER353'], labels: ['HIS90', 'GLN192', 'ARG513'], highlight: D.target.keyResidues }), lig, ghosts, hbLines); v.view({ yaw: .15, pitch: .15 }); }
 
   const meter = h('div', { class: 'meter' }, h('i')), sc = h('b', {}), stats = h('div', { class: 'pose-stats' }), bestLbl = h('p', {}), result = h('p', {});
   const placed = () => place(base, pose).map((p, i) => ({ el: els[i], p }));
@@ -26,11 +26,11 @@ export function render(host, api) {
     const s = scorePose(atoms, env);
     sc.textContent = s.total.toFixed(1); meter.firstChild.style.width = `${Math.max(0, Math.min(100, -s.total / 8 * 100))}%`;
     const formed = s.bonds.filter(b => b.e < -0.5).length;
-    stats.replaceChildren(...[['Hydrogen bonds', `${formed} of 3`], ['Ring in greasy pocket', `${(-s.hy).toFixed(1)}`], ['Clashes', s.clash.toFixed(1)], ['Atoms outside pocket', s.out]].map(([k, val]) => h('span', {}, `${k}: `, h('b', {}, val))));
+    stats.replaceChildren(...[['Hydrogen bonds', `${formed} of ${s.bonds.length}`], ['Ring in greasy pocket', `${(-s.hy).toFixed(1)}`], ['Atoms clashing with the protein', s.clashAtoms]].map(([k, val]) => h('span', {}, `${k}: `, h('b', {}, val))));
     if (!skipBest && s.total < best) { best = s.total; bestLbl.textContent = `Your best so far: ${best.toFixed(1)} kcal/mol (mock units).`; }
-    if (s.total < -6 && !api._found) { api._found = true; api.log('manual_found', s.total.toFixed(1)); }
+    if (s.total < -7 && !api._found) { api._found = true; api.log('manual_found', s.total.toFixed(1)); }
     hbLines.clear?.(); [...hbLines.children].forEach(c => hbLines.remove(c));
-    if (v) for (const b of s.bonds) if (b.e < -0.3) { const hp = env.hbondPairs.find(x => x.res === b.res); hbLines.add(dashedLine(atoms[hp.atom].p, env.residues[b.res].pos)); }
+    if (v) for (const b of s.bonds) if (b.e < -0.3) { hbLines.add(dashedLine(atoms[b.atom].p, b.pos)); }
     v?.render(); return s;
   };
   function dashedLine(a, b) { const g = new THREE.Group(); for (let i = 0; i < 6; i++) { const t = (i + .5) / 6, m = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd23a })); m.position.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); g.add(m); } return g; }
@@ -51,12 +51,12 @@ export function render(host, api) {
     ghosts.clear?.(); [...ghosts.children].forEach(c => ghosts.remove(c));
     const trials = []; let top = null;
     const evalPose = p => scorePose(place(base, p).map((q, i) => ({ el: els[i], p: q })), env).total;
-    for (let i = 0; i < 500; i++) { const p = { R: rotMat(randAxis(), rnd() * 360), t: scale(unit([gauss(), gauss(), gauss()]), rnd() * 6) }; const s = evalPose(p); trials.push({ p, s }); if (!top || s < top.s) top = { p, s }; }
+    for (let i = 0; i < 250; i++) { const p = { R: rotMat(randAxis(), rnd() * 360), t: scale(unit([gauss(), gauss(), gauss()]), rnd() * 5) }; const s = evalPose(p); trials.push({ p, s }); if (!top || s < top.s) top = { p, s }; }
     trials.sort((a, b) => a.s - b.s);
-    if (v) trials.slice(1, 4).forEach(({ p }) => { const g = ligandGroup(place(base, p).map((q, i) => ({ el: els[i], p: q })), D.ligand3d.bonds, { opacity: .3, outline: false }); ghosts.add(g); });
-    for (let k = 0; k < 900; k++) { const f = 1 - k / 900; const q = { R: mul(rotMat(randAxis(), gauss() * 7 * f + .3), top.p.R), t: add(top.p.t, scale([gauss(), gauss(), gauss()], .45 * f + .03)) }; const s = evalPose(q); if (s < top.s) top = { p: q, s }; }
+    if (v) trials.slice(1, 4).forEach(({ p }) => { const g = ligandGroup(place(base, p).map((q, i) => ({ el: els[i], p: q })), st.ligand.bonds, { opacity: .3, outline: false }); ghosts.add(g); });
+    for (let k = 0; k < 300; k++) { const f = 1 - k / 300; const q = { R: mul(rotMat(randAxis(), gauss() * 6 * f + .3), top.p.R), t: add(top.p.t, scale([gauss(), gauss(), gauss()], .4 * f + .03)) }; const s = evalPose(q); if (s < top.s) top = { p: q, s }; }
     pose.R = top.p.R; pose.t = top.p.t; redraw(true);
-    result.textContent = `The computer tried 500 random poses (faint copies show the next best ones), then improved the best one with 900 small steps. Best score: ${top.s.toFixed(1)}${best <= top.s + .05 ? `. Your best was ${best.toFixed(1)}, as good or better!` : `. Your best was ${best.toFixed(1)}.`} Real programs do this far more cleverly, but the idea is the same.`;
+    result.textContent = `The computer tried 250 random poses (faint copies show the next best ones), then improved the best one with 300 small steps. Best score: ${top.s.toFixed(1)}${best <= top.s + .05 ? `. Your best was ${best.toFixed(1)}, as good or better!` : `. Your best was ${best.toFixed(1)}.`} Real programs do this far more cleverly, but the idea is the same.`;
     api.log('auto_search', top.s.toFixed(1)); api.done({ manualBest: +best.toFixed(2), autoBest: +top.s.toFixed(2) }); quizSlot.hidden = false;
   }
   host.append(

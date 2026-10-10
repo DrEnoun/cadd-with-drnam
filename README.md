@@ -1,6 +1,6 @@
 # CADD with Dr. NAM
 
-Interactive, software-agnostic concept simulations for computer-aided drug design. Students learn **why** each step is done, **how** it works and **what the results mean**, using mock data (no real docking is run). English only. Works on phone, tablet and computer with mouse or touch; no camera needed.
+Interactive, software-agnostic concept simulations for computer-aided drug design. Students learn **why** each step is done, **how** it works and **what the results mean**. Module 1 uses the **real COX-2 structure with celecoxib (PDB 3LN1)**; the docking poses, scores and compounds A, B and C are **mock** (no real docking is run). English only. Works on phone, tablet and computer with mouse or touch; no camera needed.
 
 | Module | Status |
 |---|---|
@@ -44,10 +44,14 @@ Repository **Settings → Pages → Build and deployment → Deploy from a branc
 | `js/modules/docking/` | Module 1: `index.js` (flow) and one file per step |
 | `js/viewer3d.js` | 3D viewer and cartoon parts (atoms, bonds, pocket, box, labels) |
 | `js/modules/docking/geom.js` | Pure 3D maths (poses, RMSD, toy scoring function), tested in Node |
-| `data/docking/` | `quiz.json`, `mock.json` (all mock data: ligand and pocket coordinates, poses, results) |
+| `data/docking/` | `quiz.json`, `mock.json` (teaching text, mock poses, scores and compounds), `cox2.json` (real 3LN1 coordinates, generated) |
 
-## Using a real protein structure (later)
-The 3D scene is built from the mock pocket in `data/docking/mock.json`. The viewer was written so a real structure from the Protein Data Bank (PDB format) can be added as a ribbon or surface; this needs a PDB file supplied by the lecturer.
+## The protein structure (COX-2, PDB 3LN1)
+The 3D scene shows the real structure of human COX-2 with celecoxib (RCSB Protein Data Bank entry 3LN1, chain A; coordinates are free to use). `tools/prepare-pdb.mjs` turns the PDB file into `data/docking/cox2.json` (ribbon trace, ligand, haem, pocket residues and nearby atoms, centred on the ligand): `node tools/prepare-pdb.mjs path/to/3LN1.pdb`. A trimmed copy of the file is kept in `data/docking/3LN1_chainA.pdb`.
+
+Residue labels use the usual COX-2 literature numbering (His90, Gln192, Arg513 form the selective side pocket; Arg120 and Tyr355 guard the channel entrance). The PDB file's own numbers are 14 to 15 lower.
+
+Please add the full reference for the structure from the RCSB page (the entry's primary citation) in any publication.
 
 ## Teaching content
-All molecules, scores and results are **mock** and fictional. The science and wording should be reviewed by the lecturer before use. Parts of the software were written with an AI coding assistant (Claude) under the author's direction.
+The protein and celecoxib are real. All docking poses, scores and the compounds A, B and C are **mock**. The science and wording should be reviewed by the lecturer before use. Parts of the software were written with an AI coding assistant (Claude) under the author's direction.

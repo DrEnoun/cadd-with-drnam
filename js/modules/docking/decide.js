@@ -1,10 +1,10 @@
 // Step 8 — Decide and justify, then produce a short docking report.
 import { h, feedback, download } from '../../ui.js';
 import { store } from '../../store.js';
-import { le } from './analyse.js';
+import { analyseLigands, le } from './compounds.js';
 
 export function render(host, api) {
-  const d = api.data.decide, { ligands } = api.data.analyse;
+  const d = api.data.decide, ligands = analyseLigands(api.data), key = api.data.target.keyResidues;
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Docking ends with a decision, not a number. A good computational scientist can say which compound to test, give the evidence, and state what is still uncertain. This is also what supervisors and reviewers look for in a docking report.'),
     h('p', {}, `Your lab can test only one compound from this docking study of ${api.data.target.name}. Choose it, justify it, and say what you will do next.`));
@@ -24,9 +24,9 @@ export function render(host, api) {
     store.setNote('docking', 'justification', text.value.trim());
     api.done({ choice, evidenceRight: evRight, evidenceWrong: evWrong.length, nextRight: nxRight, nextWrong: nxWrong, words: text.value.trim().split(/\s+/).length });
     const l = ligands.find(x => x.id === choice);
-    const msg = choice === 'B' ? feedback('ok', 'Strong choice', 'Compound B has the most complete evidence: key hydrogen bonds, a pose like the reference, and a score that is not inflated by size.')
+    const msg = choice === 'B' ? feedback('ok', 'Strong choice', 'Compound B has the most complete evidence: the key hydrogen bonds of celecoxib, a pose like the reference, and a score that is not inflated by size.')
       : choice === 'C' ? feedback('ok', 'A defensible choice', 'Compound C is small and efficient, so it is a good starting point to grow, but its score and interactions are weaker. Say clearly that you chose it as a starting fragment.')
-      : feedback('bad', 'Think again', 'Compound A has the best score but a poor pose (only 62% in the pocket), no key residues and low efficiency. Its score is inflated by its size.');
+      : feedback('bad', 'Think again', 'Compound A has the best score but a poor pose (only 62% in the pocket), no sulfonamide hydrogen bonds to the key residues and low efficiency. Its score is inflated by its size.');
     out.replaceChildren(...[msg,
       evWrong.length ? feedback('bad', 'Check your evidence', h('ul', {}, evWrong.map(e => h('li', {}, `“${e.text}” ${e.why}`)))) : null,
       evRight < d.evidence.filter(e => !e.wrong).length && choice === 'B' ? feedback('bad', 'You can add more evidence', 'More of the correct statements apply to your compound. Re-read the list.') : null,
@@ -37,8 +37,8 @@ export function render(host, api) {
   const report = l => {
     const lines = [
       `DOCKING SUMMARY (mock teaching data) — ${api.data.target.name}`, `Participant code: ${store.get('code') || '-'}`, '',
-      `Chosen compound: ${l.name}`, `Docking score: ${l.score.toFixed(1)} kcal/mol (reference ${ligands[0].score.toFixed(1)})`, `Hydrogen bonds: ${l.hbonds.join(', ') || 'none'}`,
-      `Hydrophobic contacts: ${l.hydrophobic.join(', ')}`, `Key residues contacted: ${l.hbonds.filter(r => api.data.target.keyResidues.includes(r)).length} of ${api.data.target.keyResidues.length}`,
+      `Chosen compound: ${l.name}`, `Docking score: ${l.score.toFixed(1)} kcal/mol (reference ${ligands[0].score.toFixed(1)})`, `Hydrogen-bond residues: ${l.hbonds.join(', ') || 'none'}`,
+      `Hydrophobic contacts: ${l.hydrophobic.length} residues`, `Key residues contacted: ${l.hbonds.filter(r => key.includes(r)).length} of ${key.length}`,
       `Ligand efficiency: ${le(l).toFixed(2)}`, `Inside pocket: ${l.inside}%`, '',
       'Evidence I selected:', ...d.evidence.filter(e => ev.has(e.id)).map(e => `- ${e.text}`), '',
       'Next steps I selected:', ...d.nextSteps.filter(n => nx.has(n.id)).map(n => `- ${n.text}`), '',

@@ -7,15 +7,15 @@ import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints } from './v
 export { poseRmsd };
 
 export function render(host, api) {
-  const D = api.data, V = D.validate, base = ligandPoints(D), els = D.ligand3d.atoms.map(a => a[0]);
+  const D = api.data, V = D.validate, st = D.structure, base = ligandPoints(D), els = st.ligand.atoms.map(a => a[0]);
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'You cannot tell if your docking setup works by looking at new compounds, because you do not know the right answer for them. But for the original ligand you do: the crystal structure shows where it really sits. If your protocol cannot put it back where it belongs, it cannot be trusted for new compounds. This check is called ',
       h('strong', {}, 'redocking'), '.'),
     h('p', {}, h('strong', {}, 'RMSD'), ' (root-mean-square deviation) measures how far the docked atoms are from the crystal atoms, in Å. As a rule of thumb, ', h('strong', {}, '2 Å or less'), ' counts as a successful redocking.'),
     h('div', { class: 'legend' }, h('span', {}, h('i', { style: 'background:#d4ff3a' }), 'Crystal ligand (the truth)'), h('span', {}, h('i', { style: 'background:#fc7a7a' }), 'Docked pose'), h('span', {}, 'Dotted lines join matching atoms')));
-  const v = viewer(host, { height: 440, dist: 30 });
+  const v = viewer(host, { height: 440, dist: 34 });
   const dyn = new THREE.Group();
-  if (v) v.root.add(pocketGroup(D.pocket3d, { labels: false, showResidues: [] }), ligandGroup(ligandAtoms(D), D.ligand3d.bonds), dyn);
+  if (v) v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513'] }), ligandGroup(ligandAtoms(D), st.ligand.bonds), dyn);
   let si = 0, pi = 0;
   const info = h('div', {}), setupTabs = h('div', { class: 'row' }), poseTabs = h('div', { class: 'row' });
   const draw = () => {
@@ -23,7 +23,7 @@ export function render(host, api) {
     const r = rmsd(base, q);
     if (v) {
       [...dyn.children].forEach(c => dyn.remove(c));
-      dyn.add(ligandGroup(q.map((pp, i) => ({ el: els[i], p: pp })), D.ligand3d.bonds, { carbon: 0xfc7a7a }));
+      dyn.add(ligandGroup(q.map((pp, i) => ({ el: els[i], p: pp })), st.ligand.bonds, { carbon: 0xfc7a7a }));
       base.forEach((b, i) => dyn.add(dashed(b, q[i], 0xffffff, 5)));
       v.render();
     }
