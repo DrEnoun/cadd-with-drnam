@@ -186,3 +186,12 @@ select, textarea, input[type=text] { color: var(--ink-strong); }
 select option { background: #ffffff; color: #231f20; }
 .sticker-static select, .sticker-static textarea, .sticker-static input[type=text] { background: #ffffff; color: var(--sticker-ink); border: 2px solid var(--sticker-ink); }
 .sticker-static select option { background: #ffffff; color: #231f20; }
+
+/* Home banner: picture on top (not cropped), title block below */
+.hero--stack { display: block; min-height: 0; background: var(--glass-fill); isolation: auto; }
+.hero--stack .hero__pic { aspect-ratio: 2000 / 711; background: #0a1a2c; }
+.hero--stack .hero__img { position: static; object-position: center; }
+.hero--stack .hero__content { grid-template-columns: 150px minmax(0, 1fr); gap: 28px; padding: clamp(18px, 3vw, 32px) clamp(18px, 4vw, 44px); }
+.hero--stack h1, .hero--stack .lead { color: var(--ink-strong); } .hero--stack .eyebrow { color: var(--title-accent); }
+.hero--stack .lead { opacity: .95; max-width: 70ch; }
+@media (max-width: 700px) { .hero--stack .hero__pic { aspect-ratio: 16 / 9; } .hero--stack .hero__img { object-fit: cover; } .hero--stack .hero__content { grid-template-columns: 1fr; } }

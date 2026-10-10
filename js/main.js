@@ -31,17 +31,15 @@ async function route() {
 function home() {
   document.title = 'CADD with Dr. NAM';
   app.append(
-    h('section', { class: 'hero' },
-      art('hero', '', { eager: true, sizes: '100vw', cls: 'hero__bg', small: 1000, full: 1920, ratio: 821 / 1916 }),
-      h('div', { class: 'hero__shade' }),
+    h('section', { class: 'hero hero--stack' },
+      h('div', { class: 'hero__pic' }, art('hero', 'Colourful illustration of a protein with a drug in its pocket, a laptop running a simulation, a funnel filtering candidate molecules, and a capsule with arrows to the liver, kidney, gut and blood.', { eager: true, sizes: '100vw', cls: 'hero__img', small: 1000, full: 2000, ratio: 711 / 2000 })),
       h('div', { class: 'hero__content' },
         h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
         h('div', {},
           h('p', { class: 'eyebrow' }, 'Chemistry with Dr. NAM'),
           h('h1', {}, 'CADD with Dr. NAM'),
           h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations, so they work with any software you use later.'),
-          h('a', { class: 'btn-start', href: '#/docking', style: 'text-decoration:none' }, 'Start Module 1 →'))),
-      h('span', { class: 'hero__cap' }, 'Illustration: candidate molecules and a protein pocket')),
+          h('a', { class: 'btn-start', href: '#/docking', style: 'text-decoration:none' }, 'Start Module 1 →')))),
     h('h2', { class: 'section-title' }, 'Four modules'),
     h('div', { class: 'mods' }, modules.map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
       h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
