@@ -10,10 +10,11 @@ export function render(host, api) {
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'A real compound library has millions of molecules. Testing them all in the lab is far too slow and costly, and docking every one with the most accurate method is also too slow. A funnel solves both problems: cheap, fast filters go first, and the expensive, accurate methods only run on the survivors.'),
     h('p', { class: 'lead' }, 'Watch the funnel below. Each glowing ring is a gate. Compounds that fail a gate turn red and drop out. Only a few reach the tube at the bottom, and those are the ones you take to the lab.'));
-  const v = createViewer(host, { height: 460, dist: 46, yaw: .35, pitch: .12 });
+  const v = createViewer(host, { height: 460, dist: 58, yaw: .3, pitch: .1 });
+  let funnel = null;
   if (v) {
-    funnelScene(v, lib, T.stages.slice(1).map(s => ({ label: s.label, pass: Math.min(.8, Math.max(.35, s.pass * 3)) })));
-    host.append(labelBar(null, [...legendItems(), { label: 'Red: removed at a gate', color: '#ff5a5a' }]));
+    funnel = funnelScene(v, lib, T.stages.slice(1).map(s => ({ label: s.label, pass: s.pass })), 2000000);
+    host.append(labelBar(null, [...legendItems(), { label: 'Red flash: removed at that gate', color: '#ff5a5a' }]), h('p', { class: 'hint' }, 'The funnel follows the sliders below: the numbers at each gate and how many compounds drop out change when you change a stage.'));
   }
   // your own funnel
   host.append(h('h3', { style: 'margin-top:22px' }, 'Build your own funnel'), h('p', {}, 'Choose the library size and how much each stage keeps. See how few compounds remain, and compare it with testing everything.'));
@@ -26,6 +27,7 @@ export function render(host, api) {
     out.replaceChildren(h('div', { class: 'kv' }, h('span', {}, 'Compounds left for the lab'), h('b', {}, fmt(survivors))),
       h('p', {}, parts.join('  →  ')),
       h('p', { class: 'muted' }, `For scale: a fast robotic lab screen tests about ${fmt(T.perDay)} compounds a day (illustrative). Testing all ${fmt(N)} would take about ${daysAll >= 1 ? Math.round(daysAll) + ' days' : 'a day'}; testing ${fmt(survivors)} takes ${survivors / T.perDay < 1 ? 'less than a day' : Math.ceil(survivors / T.perDay) + ' days'}.`));
+    funnel?.update(stages.map((s, i) => ({ label: s.label, pass: vals[i] / 100 })), N);
     api.log('funnel', `${N}->${survivors}`);
   };
   stages.forEach((s, i) => { const lab = h('b', { style: 'min-width:48px;display:inline-block' }, `${vals[i]}%`); rows.append(h('label', { class: 'row' }, h('span', { style: 'min-width:170px' }, `${s.label} keeps`), h('input', { type: 'range', min: 1, max: 100, value: vals[i], style: 'flex:1;min-width:160px', 'aria-label': `${s.label} keeps percent`, oninput: e => { vals[i] = +e.target.value; lab.textContent = `${vals[i]}%`; upd(); } }), lab)); });

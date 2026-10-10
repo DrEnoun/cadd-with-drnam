@@ -79,36 +79,62 @@ export function inspector(host, { height = 280 } = {}) {
 }
 
 // ---------------------------------------------------------------- the funnel
-/** A glass funnel with compounds falling through gates. stages: [{ label, pass }] with pass = fraction that survive that gate. */
-export function funnelScene(v, lib, stages) {
+const fmtN = n => n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} M` : n >= 1e3 ? `${(n / 1e3).toFixed(n >= 1e5 ? 0 : 1)} k` : String(Math.round(n));
+/** A glass funnel with compounds falling through gates. stages: [{ label, pass }] with pass = fraction that survives each gate (0 to 1),
+ *  start = number of compounds that enter. Each gate shows how many are left; compounds that fail a gate flash red and drop out.
+ *  Returns { update(stages, start) } so the funnel can follow sliders. */
+export function funnelScene(v, lib, stages0, start0 = 2000000) {
   const root = new THREE.Group(); v.root.add(root);
-  const H = 34, top = H / 2, bottom = -H / 2, R0 = 13, R1 = 2.6;
+  const H = 36, top = H / 2, bottom = -H / 2, R0 = 13, R1 = 2.6, N = 110;
   const cone = new THREE.Mesh(new THREE.CylinderGeometry(R0, R1, H, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x9fd8e6, transparent: true, opacity: .12, side: THREE.DoubleSide, roughness: .1, depthWrite: false }));
   root.add(cone);
-  const rim = (y, r, col = 0x9fd8e6) => { const t = new THREE.Mesh(new THREE.TorusGeometry(r, .12, 8, 64), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .9 })); t.rotation.x = Math.PI / 2; t.position.y = y; root.add(t); return t; };
-  rim(top, R0); const gates = stages.map((s, i) => { const y = top - H * (i + 1) / (stages.length + 1), r = R0 + (R1 - R0) * ((top - y) / H); rim(y, r, 0xd4ff3a); const l = labelSprite(s.label, { size: 8 }); l.position.set(r + 4 + l.scale.x / 2, y, 0); root.add(l); return { y, r }; });
+  const ring = (y, r, col) => { const t = new THREE.Mesh(new THREE.TorusGeometry(r, .13, 8, 64), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .95 })); t.rotation.x = Math.PI / 2; t.position.y = y; return t; };
+  root.add(ring(top, R0, 0x9fd8e6));
   const tube = new THREE.Mesh(new THREE.CylinderGeometry(R1 * 1.05, R1 * .9, 7, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xb9f3ea, transparent: true, opacity: .18, side: THREE.DoubleSide, depthWrite: false })); tube.position.y = bottom - 3.5; root.add(tube);
   const out = glow([0, bottom - 5, 0], 0x6fe06f, 8, .6); root.add(out);
-  // particles: each one has a fixed fate (the gate it stops at, or none if it survives all)
-  const N = 70, ps = [];
+  const inTag = labelSprite('In: 2 M', { size: 7, color: '#9fd8e6' }); inTag.position.set(R0 + 8, top, 0); root.add(inTag);
+  const outTag = labelSprite('To the lab: 0', { size: 8, color: '#b9f3ea' }); outTag.position.set(7, bottom - 5, 0); root.add(outTag);
+  let stages = [], gates = [], gateObjs = [], start = start0, flash = [];
   const rnd = (() => { let s = 12345; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+  const ps = [];
   for (let i = 0; i < N; i++) {
-    const c = lib[i % lib.length], g = GROUP[c.group];
+    const g = GROUP[lib[i % lib.length].group];
     const m = new THREE.Mesh(new THREE.SphereGeometry(.7, 14, 10), new THREE.MeshStandardMaterial({ color: g.color, roughness: .3, emissive: g.color, emissiveIntensity: .3, transparent: true }));
-    let fate = stages.length; for (let k = 0; k < stages.length; k++) if (rnd() > stages[k].pass) { fate = k; break; }
-    ps.push({ m, fate, a: rnd() * Math.PI * 2, rr: rnd(), y: top + rnd() * 30, v: 3 + rnd() * 2.5, hold: 0 }); root.add(m);
+    ps.push({ m, g, u: rnd(), fate: 99, a: rnd() * Math.PI * 2, rr: rnd(), y: top + rnd() * 30, v: 3 + rnd() * 2.5, hold: 0 }); root.add(m);
+  }
+  function rebuild(newStages, newStart) {
+    stages = newStages; start = newStart ?? start;
+    gateObjs.forEach(o => { root.remove(o); o.traverse?.(c => c.material?.map?.dispose?.()); }); gateObjs = []; gates = []; flash = [];
+    let left = start; const counts = [];
+    stages.forEach(s => { left *= s.pass; counts.push(left); });
+    stages.forEach((s, i) => {
+      const y = top - H * (i + 1) / (stages.length + 1), r = R0 + (R1 - R0) * ((top - y) / H), rg = ring(y, r, 0xd4ff3a), l = labelSprite(`${s.label}: ${fmtN(Math.max(1, counts[i]))} left`, { size: 7.5 });
+      l.position.set(r + 3 + l.scale.x / 2, y, 0); root.add(rg, l); gateObjs.push(rg, l); gates.push({ y, r, ring: rg });
+    });
+    inTag.material.map.dispose(); const t = labelSprite(`In: ${fmtN(start)}`, { size: 7, color: '#9fd8e6' }); inTag.material.map = t.material.map; inTag.scale.copy(t.scale); inTag.position.x = R0 + 3 + t.scale.x / 2;
+    const fin = Math.max(1, counts[counts.length - 1] ?? start); const t2 = labelSprite(`To the lab: ${fmtN(fin)}`, { size: 8, color: '#b9f3ea' }); outTag.material.map.dispose(); outTag.material.map = t2.material.map; outTag.scale.copy(t2.scale);
+    // each particle keeps a fixed random number u; it is stopped at the first gate whose cumulative survival is below u, so the visible drop-out matches the real fractions
+    ps.forEach(p => { let cum = 1; p.fate = stages.length; for (let k = 0; k < stages.length; k++) { cum *= stages[k].pass; if (p.u > cum) { p.fate = k; break; } } p.hold = 0; p.y = top + rnd() * 30; p.m.material.opacity = 1; p.m.scale.setScalar(.7); p.m.material.emissive.copy(p.m.material.color); });
+    v.render();
   }
   v.onFrame = dt => {
     for (const p of ps) {
       const stopY = p.fate < stages.length ? gates[p.fate].y : bottom - 5;
-      if (p.hold > 0) { p.hold -= dt; p.m.material.opacity = Math.max(0, p.hold / 1.4); p.m.scale.setScalar(.7 * (.4 + p.hold / 1.4)); p.m.material.emissive.setHex(0xff5a5a); if (p.hold <= 0) respawn(p); continue; }
+      if (p.hold > 0) { p.hold -= dt; const k = Math.max(0, p.hold / 1.2); p.m.material.opacity = k; p.m.scale.setScalar(.7 * (.5 + k)); if (p.hold <= 0) respawn(p); continue; }
       p.y -= p.v * dt;
       const t = Math.max(0, Math.min(1, (top - p.y) / H)), r = (R0 + (R1 - R0) * t) * .82 * p.rr;
       p.m.position.set(Math.cos(p.a) * r, p.y, Math.sin(p.a) * r);
-      if (p.y <= stopY) { if (p.fate < stages.length) p.hold = 1.4; else respawn(p); }
+      if (p.y <= stopY) {
+        if (p.fate < stages.length) { p.hold = 1.2; p.m.material.emissive.setHex(0xff3b3b); p.m.material.emissiveIntensity = 1; const g = gates[p.fate]; g.pulse = 1; }
+        else { respawn(p); outPulse = 1; }
+      }
     }
+    for (const g of gates) if (g.pulse > 0) { g.pulse = Math.max(0, g.pulse - dt * 2.2); g.ring.material.color.setHex(g.pulse > .05 ? 0xff5a5a : 0xd4ff3a); g.ring.scale.setScalar(1 + g.pulse * .07); }
+    if (outPulse > 0) { outPulse = Math.max(0, outPulse - dt * 2); out.material.opacity = .6 + .4 * outPulse; }
     v.render();
   };
-  function respawn(p) { p.y = top + rnd() * 8; p.a = rnd() * Math.PI * 2; p.rr = rnd(); p.m.material.opacity = 1; p.m.scale.setScalar(.7); p.m.material.emissive.setHex(p.m.material.color.getHex()); p.m.material.emissiveIntensity = .3; }
-  return { root };
+  let outPulse = 0;
+  function respawn(p) { p.y = top + rnd() * 8; p.a = rnd() * Math.PI * 2; p.rr = rnd(); p.u = rnd(); let cum = 1; p.fate = stages.length; for (let k = 0; k < stages.length; k++) { cum *= stages[k].pass; if (p.u > cum) { p.fate = k; break; } } p.m.material.opacity = 1; p.m.scale.setScalar(.7); p.m.material.emissive.copy(p.m.material.color); p.m.material.emissiveIntensity = .3; }
+  rebuild(stages0, start0);
+  return { root, update: rebuild };
 }
