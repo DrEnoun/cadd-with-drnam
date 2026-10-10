@@ -210,3 +210,5 @@ select option { background: #ffffff; color: #231f20; }
 @keyframes heroSpark { 0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(.6); } 25% { opacity: .85; } 60% { opacity: .55; } 100% { opacity: 0; transform: translate3d(var(--dx), -34px, 0) scale(1.1); } }
 .hero.is-paused *, .hero.is-paused { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) { .hero--stack .hero__img, .hero__sheen, .hero__sparks i { animation: none !important; } .hero__sparks, .hero__sheen { display: none; } .hero__plx { transform: none; } .hero--stack .hero__img { transform: scale(1.01); } }
+.tbl tr.is-cur td { font-weight: 700; }
+.tbl tr.is-pick { background: color-mix(in srgb, var(--spark-400) 16%, transparent); }

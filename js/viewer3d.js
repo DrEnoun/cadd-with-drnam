@@ -129,11 +129,12 @@ export function ligandGroup(atoms, bonds, { carbon = COLORS.C, opacity = 1, outl
 }
 
 export function labelSprite(text, { color = '#ffffff', bg = 'rgba(6,13,27,.78)', size = 4.2 } = {}) {
-  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 72; const x = cv.getContext('2d');
-  x.fillStyle = bg; x.beginPath(); x.roundRect(2, 6, 252, 60, 22); x.fill();
-  x.font = '700 34px "League Spartan", system-ui, sans-serif'; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 128, 38);
+  const cv = document.createElement('canvas'), x = cv.getContext('2d'); const font = '700 34px "League Spartan", system-ui, sans-serif';
+  x.font = font; const w = Math.max(256, Math.ceil(x.measureText(text).width) + 40); cv.width = w; cv.height = 72;
+  x.fillStyle = bg; x.beginPath(); x.roundRect(2, 6, w - 4, 60, 22); x.fill();
+  x.font = font; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, w / 2, 38);
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); s.scale.set(size, size * 72 / 256, 1); s.renderOrder = 10;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); s.scale.set(size * w / 256, size * 72 / 256, 1); s.renderOrder = 10;
   return s;
 }
 
@@ -154,8 +155,8 @@ export function callout(text, at, off, color = '#d4ff3a') {
 /** Buttons and a key under a viewer: "Names on/off" and a coloured legend. items: [{label, color}]. */
 export function labelBar(group, items) {
   const wrap = h('div', { class: 'labelbar' });
-  const btn = h('button', { class: 'sticker', type: 'button', 'aria-pressed': 'true', onclick: () => { const on = btn.getAttribute('aria-pressed') !== 'true'; btn.setAttribute('aria-pressed', String(on)); btn.textContent = on ? 'Names: on' : 'Names: off'; group.visible = on; } }, 'Names: on');
-  wrap.append(btn, h('div', { class: 'legend' }, items.map(i => h('span', {}, h('i', { style: `background:${i.color}` }), i.label))));
+  const btn = group ? h('button', { class: 'sticker', type: 'button', 'aria-pressed': 'true', onclick: () => { const on = btn.getAttribute('aria-pressed') !== 'true'; btn.setAttribute('aria-pressed', String(on)); btn.textContent = on ? 'Names: on' : 'Names: off'; group.visible = on; } }, 'Names: on') : null;
+  wrap.append(...[btn, h('div', { class: 'legend' }, items.map(i => h('span', {}, h('i', { style: `background:${i.color}` }), i.label)))].filter(Boolean));
   return wrap;
 }
 

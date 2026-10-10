@@ -5,7 +5,7 @@ Interactive, software-agnostic concept simulations for computer-aided drug desig
 | Module | Status |
 |---|---|
 | 1. Molecular Docking | Ready |
-| 2. Virtual Screening | Planned |
+| 2. Virtual Screening | Ready |
 | 3. ADME Prediction | Planned |
 | 4. Homology Modelling | Planned |
 
@@ -15,6 +15,11 @@ Pre-test → Why dock? → Search and score → Prepare → Search box → Scori
 The pictures are interactive **3D cartoon-style molecules** (three.js, bundled in `vendor/`, works offline): a cut-open mock protein with a pocket, a ball-and-stick ligand, residue sticks, dotted hydrogen bonds and a 3D search box. Drag to turn, pinch or scroll to zoom. If a browser has no WebGL, the controls and feedback still work.
 
 Every step opens with a "Why do we do this?" box and ends with a check of understanding.
+
+## Module 2 — Virtual Screening
+Pre-test → Why screen? (3D funnel and your own funnel numbers) → The library (45 real drugs in 3D property space, with an inspector) → Property filters (Lipinski and Veber, with false negatives) → Prepare (salts, duplicates, PAINS, charge, 3D) → Two methods (ligand-based shape overlay vs structure-based score, in the COX-2 pocket) → Did it work? (ROC curves, AUC, enrichment factor) → Pick hits (diversity, alerts, justification, report) → Post-test and survey.
+
+**Real data:** the 45 drugs are real (18 known COX inhibitors and 27 drugs for other targets, including PAINS scaffolds). Properties (molecular weight, cLogP, polar surface area, donors and acceptors, rotatable bonds, Lipinski and PAINS flags) and the 3D shapes are computed with RDKit, and each shape was overlaid on the crystal celecoxib from 3LN1. **Mock:** the docking-style score (it is built from the real overlap and size plus pharmacophore features, with fixed noise) and the funnel numbers. Rebuild the data with `python3 tools/prepare-library.py` (needs `pip install rdkit numpy`). "Active" means a known COX inhibitor in the literature: please check each one before publication.
 
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
@@ -44,9 +49,12 @@ The home-page banner is `assets/img/hero.webp` (2000 px, plus a 1000 px version)
 | `js/main.js` | Router, home, "My record", About |
 | `js/eval.js`, `js/store.js` | Consent, tests, survey, CSV export; local storage |
 | `js/modules/registry.js` | List of modules (add one here to add a module) |
-| `js/modules/docking/` | Module 1: `index.js` (flow) and one file per step |
+| `js/modules/flow.js` | Shared flow for every module: intro, consent, pre-test, steps, post-test, survey |
+| `js/modules/docking/` | Module 1: `index.js` (its steps) and one file per step |
+| `js/modules/screening/` | Module 2: `stats.js` (pure maths: filters, ROC, enrichment), `scenes.js` (3D cloud, funnel, inspector) and one file per step |
 | `js/viewer3d.js` | 3D viewer and cartoon parts (atoms, bonds, pocket, box, labels) |
 | `js/modules/docking/geom.js` | Pure 3D maths (poses, RMSD, toy scoring function), tested in Node |
+| `data/screening/` | `library.json` (real drugs, RDKit properties and 3D shapes), `teaching.json`, `quiz.json`; built by `tools/prepare-library.py` |
 | `data/docking/` | `quiz.json`, `mock.json` (teaching text, mock poses, scores and compounds), `cox2.json` (real 3LN1 coordinates, generated) |
 
 ## The protein structure (COX-2, PDB 3LN1)

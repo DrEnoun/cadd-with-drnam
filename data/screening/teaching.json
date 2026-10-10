@@ -1,0 +1,194 @@
+{
+ "_about": "Teaching text for Module 2. The library, its properties and 3D shapes are real (library.json); the docking-style score is mock.",
+ "target": {
+  "name": "COX-2 (cyclooxygenase-2)",
+  "pdb": "3LN1",
+  "drug": "celecoxib"
+ },
+ "why": {
+  "methods": [
+   {
+    "id": "lb",
+    "text": "Ligand-based screening (similarity or shape)"
+   },
+   {
+    "id": "sb",
+    "text": "Structure-based screening (docking into the pocket)"
+   },
+   {
+    "id": "pf",
+    "text": "Property filters (drug-likeness)"
+   },
+   {
+    "id": "hs",
+    "text": "Hit selection (diversity, alerts, inspection)"
+   }
+  ],
+  "scenarios": [
+   {
+    "id": "s1",
+    "text": "You have a known drug (celecoxib) and want other compounds that look or are shaped like it.",
+    "answer": "lb",
+    "why": "With a known active you can search for compounds that resemble it in 2D or 3D."
+   },
+   {
+    "id": "s2",
+    "text": "You have the 3D structure of the target protein but no known inhibitors.",
+    "answer": "sb",
+    "why": "Without a reference drug, you can dock compounds into the pocket and rank how well they fit."
+   },
+   {
+    "id": "s3",
+    "text": "Many of the million compounds are far too big, too greasy or too polar to ever become oral drugs.",
+    "answer": "pf",
+    "why": "Property filters such as Lipinski's rule of five remove compounds that are unlikely to be absorbed, very cheaply."
+   },
+   {
+    "id": "s4",
+    "text": "Docking gives you 100 promising compounds, but the lab can only test 10 and many look alike.",
+    "answer": "hs",
+    "why": "Choosing a varied, inspected set (and dropping assay-interference scaffolds) is the last step before testing."
+   }
+  ],
+  "stages": [
+   {
+    "id": "lib",
+    "label": "Library",
+    "pass": 1,
+    "start": 2000000
+   },
+   {
+    "id": "prop",
+    "label": "Property filter",
+    "pass": 0.6
+   },
+   {
+    "id": "prep",
+    "label": "Preparation",
+    "pass": 0.9
+   },
+   {
+    "id": "lb",
+    "label": "Shape / similarity",
+    "pass": 0.1
+   },
+   {
+    "id": "sb",
+    "label": "Docking",
+    "pass": 0.05
+   }
+  ],
+  "perDay": 10000
+ },
+ "prepare": [
+  {
+   "id": "salt",
+   "item": "Diclofenac sodium: the drug written as a salt with Na⁺",
+   "detail": "The file contains two pieces: the drug and a sodium ion.",
+   "answer": "fix",
+   "why": "Strip the counter-ion and keep the drug. The sodium is not part of what binds the target.",
+   "bad": "A free sodium ion confuses the 3D generation and the scoring."
+  },
+  {
+   "id": "dup",
+   "item": "(S)-ibuprofen when racemic ibuprofen is already in the library",
+   "detail": "Same compound, one stereoisomer written separately.",
+   "answer": "remove",
+   "why": "Remove or merge duplicates, otherwise the same compound is counted twice and the hit list is inflated.",
+   "bad": "Duplicates take two places in the ranking and bias the results."
+  },
+  {
+   "id": "pains",
+   "item": "Benzylidene rhodanine, which is flagged as a PAINS scaffold",
+   "detail": "A substructure that often looks active in many assays for the wrong reasons.",
+   "answer": "remove",
+   "why": "Flag or remove PAINS before screening. They are frequent false positives and waste lab time.",
+   "bad": "It may rank high but turn out to be an assay artefact."
+  },
+  {
+   "id": "charge",
+   "item": "Carboxylic acids (for example ibuprofen) drawn in the neutral form",
+   "detail": "At body pH (about 7.4) these acids lose their proton.",
+   "answer": "fix",
+   "why": "Assign the charge state for the pH. The carboxylate, not the neutral acid, is what meets the protein, for example the arginine at the entrance of the COX-2 channel.",
+   "bad": "The wrong charge changes hydrogen bonds and electrostatics in the score."
+  },
+  {
+   "id": "flat",
+   "item": "Flat (2D) structure files",
+   "detail": "The library came as sketches with no 3D coordinates.",
+   "answer": "fix",
+   "why": "Generate realistic 3D conformers (and minimise them). Shape and docking methods need 3D.",
+   "bad": "A flat molecule cannot be overlaid or docked sensibly."
+  },
+  {
+   "id": "stereo",
+   "item": "A chiral compound with the 3D configuration not specified",
+   "detail": "Naproxen is the (S) form, but the entry did not say which.",
+   "answer": "fix",
+   "why": "Assign or enumerate the stereoisomers. Different mirror images can bind very differently.",
+   "bad": "You may dock the wrong mirror image and get a misleading rank."
+  },
+  {
+   "id": "big",
+   "item": "A 3,000 Da peptide in a small-molecule library",
+   "detail": "Far larger than a typical drug.",
+   "answer": "remove",
+   "why": "Remove compounds outside the size range the method and the project were designed for.",
+   "bad": "It slows the run and gives unreliable scores."
+  },
+  {
+   "id": "fail",
+   "item": "A compound for which no 3D structure could be generated",
+   "detail": "The program failed on an unusual ring system.",
+   "answer": "remove",
+   "why": "Drop it (and note it). Do not keep a compound with no valid structure.",
+   "bad": "Broken structures give meaningless scores or stop the run."
+  },
+  {
+   "id": "metal",
+   "item": "A platinum-containing compound",
+   "detail": "Metal complexes are not handled well by standard docking programs.",
+   "answer": "remove",
+   "why": "Remove or treat separately with a method designed for metals.",
+   "bad": "Standard force fields and scoring functions give unreliable results for metals."
+  },
+  {
+   "id": "taut",
+   "item": "Piroxicam written as one of several possible tautomers",
+   "detail": "The keto and enol forms interconvert.",
+   "answer": "fix",
+   "why": "Generate the likely tautomers (or choose the dominant one) so the best form is screened.",
+   "bad": "Screening only an unlikely form can hide a real hit."
+  }
+ ],
+ "decide": {
+  "nextSteps": [
+   {
+    "id": "n1",
+    "text": "Inspect poses and interactions of the selected compounds in the pocket.",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Check ADME and drug-likeness of the selected compounds.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Buy or make the compounds and test them in a lab assay.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Report them as confirmed COX-2 inhibitors.",
+    "right": false
+   },
+   {
+    "id": "n5",
+    "text": "Skip testing because the ranks are good.",
+    "right": false
+   }
+  ]
+ }
+}
