@@ -12,21 +12,21 @@
    "id": "D",
    "name": "Distribution",
    "organ": "Blood and tissues",
-   "text": "The blood carries the drug around the body. Some drug sticks to plasma proteins, some enters tissues, and only a few drugs cross the blood-brain barrier.",
+   "text": "The blood carries the drug around the body, here to the brain and to a muscle. Some drug sticks to plasma proteins, some enters tissues, and only a few drugs cross the blood-brain barrier.",
    "fail": "Does not reach the site of action, or reaches places where it should not (side effects)."
   },
   {
    "id": "M",
    "name": "Metabolism",
    "organ": "Liver",
-   "text": "Liver enzymes (mostly the cytochrome P450 family, CYP) change the drug. Phase I reactions add or reveal a polar group; phase II reactions attach a sugar or sulfate so the drug is easier to remove.",
+   "text": "Liver enzymes (mostly the cytochrome P450 family, CYP, the green blobs) change the drug. Phase I reactions add or reveal a polar group; phase II reactions attach a sugar or sulfate so the drug is easier to remove. Blood from the gut goes to the liver first (the portal vein), so part of an oral dose is already attacked on this \"first pass\". The liver is visited again later, every time the blood passes through it.",
    "fail": "Destroyed too fast (short action), or turned into a toxic metabolite."
   },
   {
    "id": "E",
    "name": "Excretion",
    "organ": "Kidneys (and bile)",
-   "text": "The kidneys filter the blood and remove the drug and its metabolites in urine. How fast this happens sets the half-life and how often you must dose.",
+   "text": "The kidneys filter the blood and remove the drug and its orange metabolites in the urine, which collects in the bladder. How fast this happens sets the half-life and how often you must dose.",
    "fail": "Removed too fast (needs frequent dosing) or too slowly (builds up and becomes toxic)."
   }
  ],
