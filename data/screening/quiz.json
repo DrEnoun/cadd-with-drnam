@@ -1,0 +1,125 @@
+{
+ "_about": "Pre/post concept test for Module 2 (virtual screening). 'answer' is the index of the correct option. Check the science before using with students.",
+ "questions": [
+  {
+   "id": "q1",
+   "q": "What is the main purpose of virtual screening?",
+   "options": [
+    "To rank or filter a large compound library on the computer so that only a small number of promising compounds go to the lab",
+    "To prove that a compound is a safe medicine",
+    "To synthesise every compound in the library",
+    "To measure the real activity of every compound"
+   ],
+   "answer": 0,
+   "why": "Virtual screening narrows millions of possibilities to a short list that is affordable to buy and test. It predicts, it does not prove."
+  },
+  {
+   "id": "q2",
+   "q": "Why is virtual screening usually done as a funnel of stages?",
+   "options": [
+    "Cheap, fast filters remove many compounds first, so the slow and more accurate methods only run on the survivors",
+    "Because computers can only run one method at a time",
+    "Because every stage must remove exactly half the compounds",
+    "Because docking cannot be run on more than 100 compounds"
+   ],
+   "answer": 0,
+   "why": "Each stage trades speed for accuracy. Putting the quick filters first saves time and money."
+  },
+  {
+   "id": "q3",
+   "q": "Lipinski's rule of five (molecular weight, cLogP, hydrogen-bond donors and acceptors) is used to…",
+   "options": [
+    "flag compounds that are unlikely to be good oral drugs, as a guide rather than a law",
+    "prove that a compound binds the target",
+    "predict the exact dose of a drug",
+    "find the 3D shape of a protein"
+   ],
+   "answer": 0,
+   "why": "The rules describe the property range of most oral drugs. Many successful drugs break one of them, so they are a guide."
+  },
+  {
+   "id": "q4",
+   "q": "A strict property filter removes some compounds that are actually active. These lost compounds are called…",
+   "options": [
+    "false negatives",
+    "false positives",
+    "decoys",
+    "duplicates"
+   ],
+   "answer": 0,
+   "why": "A false negative is a real hit that the method wrongly rejects. Filters that are too strict create them."
+  },
+  {
+   "id": "q5",
+   "q": "Why do we prepare a library before screening (remove salts and duplicates, set charges, generate 3D shapes, flag PAINS)?",
+   "options": [
+    "Methods need correct, clean 3D molecules, and messy structures give misleading scores",
+    "To make the library bigger",
+    "To remove all compounds that bind the target",
+    "Preparation is optional and changes nothing"
+   ],
+   "answer": 0,
+   "why": "Docking and shape methods work on the 3D structure in the right charge state. Bad input gives bad rankings. PAINS are scaffolds that often look active in many assays for the wrong reasons."
+  },
+  {
+   "id": "q6",
+   "q": "Which statement about ligand-based and structure-based screening is correct?",
+   "options": [
+    "Ligand-based needs at least one known active to compare with; structure-based needs a 3D structure of the target",
+    "Both need the same inputs",
+    "Ligand-based needs a protein structure; structure-based needs a known drug",
+    "Neither needs any prior knowledge"
+   ],
+   "answer": 0,
+   "why": "Ligand-based methods ask 'which compounds look like a known active?'. Structure-based methods ask 'which compounds fit the pocket?'."
+  },
+  {
+   "id": "q7",
+   "q": "A weakness of ranking only by similarity or shape to one known drug is that it…",
+   "options": [
+    "tends to miss active compounds that have a different scaffold",
+    "always finds every active compound",
+    "cannot rank large libraries",
+    "only works for proteins"
+   ],
+   "answer": 0,
+   "why": "Compounds that bind the same pocket in a different way look different from the reference, so a similarity search can miss them. Using more than one method helps."
+  },
+  {
+   "id": "q8",
+   "q": "The enrichment factor at 10% (EF10) is 3. What does this mean?",
+   "options": [
+    "The top 10% of the ranked list contains 3 times more actives than a random 10% would",
+    "3 compounds were active",
+    "The method is 3% accurate",
+    "The top 3 compounds are active"
+   ],
+   "answer": 0,
+   "why": "EF compares the hit rate in the selected top fraction with the hit rate of the whole library. Values above 1 mean better than random."
+  },
+  {
+   "id": "q9",
+   "q": "A ROC curve has an area under the curve (AUC) of 0.5. What does this say about the ranking?",
+   "options": [
+    "It is no better than random",
+    "It is perfect",
+    "It is slightly worse than perfect",
+    "It has found half of the actives"
+   ],
+   "answer": 0,
+   "why": "AUC 0.5 is random ranking and 1.0 is perfect. Real screens usually sit in between, so we also check early enrichment."
+  },
+  {
+   "id": "q10",
+   "q": "After the screen, you have a ranked list of the top 100 compounds. What should you do before testing them?",
+   "options": [
+    "Inspect them: poses and interactions, PAINS and property alerts, and chemical diversity, then pick a manageable and varied set",
+    "Send all 100 to the lab at once",
+    "Pick only the 10 most similar to each other",
+    "Trust the scores and skip any inspection"
+   ],
+   "answer": 0,
+   "why": "Screening scores are predictions. A short, diverse, inspected list gives the lab the best chance of finding real hits."
+  }
+ ]
+}

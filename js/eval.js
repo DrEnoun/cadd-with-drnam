@@ -21,6 +21,11 @@ export const PERCEPTION = {
     'This module helped me understand what to analyse after docking.',
     'I feel more confident to learn docking software after this module.',
   ],
+  screening: [
+    'This module helped me understand why we screen compound libraries on the computer.',
+    'This module helped me understand how to judge whether a screen worked and choose hits.',
+    'I feel more confident to learn virtual screening software after this module.',
+  ],
 };
 
 /** Standard SUS scoring (0–100): odd items score-1, even items 5-score, sum × 2.5. */

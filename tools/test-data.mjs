@@ -61,4 +61,28 @@ assert.ok(Math.abs(kdFromDG(-8) - 1.4e-6) < 0.1e-6);
 assert.ok(Math.abs(kdFromDG(-9.364) / kdFromDG(-8) - 0.1) < 0.005);
 assert.equal(fmtKd(1.4e-6), '1.4 µM');
 
+
+// ---- Module 2: virtual screening
+import * as S from '../js/modules/screening/stats.js';
+const lib = J('data/screening/library.json'), cs = lib.compounds, teach = J('data/screening/teaching.json'), sq = J('data/screening/quiz.json').questions;
+assert.equal(cs.length, 45); assert.equal(cs.filter(c => c.active).length, 18);
+assert.equal(lib.sim.length, 45); assert.equal(lib.sim[0][0], 1);
+for (const c of cs) { assert.ok(c.atoms.length === c.heavy && c.bonds.length >= c.heavy - 1, c.name + ' 3D structure'); assert.ok(c.mw > 50 && c.tpsa >= 0); }
+const byName = n => cs.find(c => c.name === n);
+assert.ok(Math.abs(byName('Celecoxib').mw - 381.4) < 0.2, 'celecoxib MW'); assert.equal(byName('Celecoxib').ro5, 0); assert.ok(byName('Atorvastatin').ro5 >= 2); assert.equal(byName('Benzylidene rhodanine').pains, 1);
+assert.ok(byName('Celecoxib').shape > 0.7, 'celecoxib overlays itself well'); assert.equal(byName('Celecoxib').tanimoto, 1);
+// filters, ranking, ROC, enrichment
+const fc = S.filterCounts(cs, S.DEFAULT_LIMITS); assert.equal(fc.activesLost.length, 0, 'usual filters keep every active'); assert.ok(fc.kept < fc.total);
+assert.ok(S.filterCounts(cs, { mw: 350, logp: 3.5, hbd: 3, hba: 7, rotb: 7, tpsa: 100 }).activesLost.length >= 5, 'a strict filter loses real actives');
+assert.equal(S.filterCounts(cs, { mw: null, logp: null }).kept, 45);
+const perfect = c => c.active ? 1 : 0, worst = c => c.active ? 0 : 1;
+assert.ok(Math.abs(S.roc(cs, perfect).auc - 1) < 1e-9); assert.ok(S.roc(cs, worst).auc < 1e-9); const a0 = S.roc(cs, c => ((c.id.charCodeAt(2) * 7) % 5)).auc; assert.ok(a0 > 0.25 && a0 < 0.75, 'an arbitrary score is near random');
+assert.ok(S.roc(cs, c => -c.dock).auc > 0.7, 'the docking-style score beats random'); assert.ok(S.roc(cs, c => c.shape).auc > 0.55);
+const ef = S.enrichment(cs, perfect, 0.2); assert.equal(ef.hits, ef.n); assert.ok(Math.abs(ef.ef - 45 / 18) < 1e-9, 'a perfect top 20% has EF = 1 / base rate');
+assert.equal(S.enrichment(cs, c => -c.dock, 1).ef, 1);
+const cons = S.consensusScore(cs, [c => c.shape, c => -c.dock]); assert.equal(S.rankBy(cs, cons).length, 45);
+// teaching text
+teach.prepare.forEach(p => assert.ok(['keep', 'remove', 'fix'].includes(p.answer), p.id)); teach.why.scenarios.forEach(x => assert.ok(teach.why.methods.some(m => m.id === x.answer), x.id));
+assert.equal(sq.length, 10); sq.forEach(q => { assert.ok(q.options.length >= 3 && q.answer >= 0 && q.answer < q.options.length && q.why, q.id); });
 console.log('Docking data and maths OK');
+console.log('Virtual screening data and maths OK');
