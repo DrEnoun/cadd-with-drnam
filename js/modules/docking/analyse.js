@@ -1,8 +1,8 @@
 // Step 7 — Analyse results. Evidence is added layer by layer; the best pick often changes.
 // Hydrogen bonds, hydrophobic contacts, key residues and efficiency are computed from the 3D coordinates.
 import { h, feedback } from '../../ui.js';
-import { THREE, bond3d } from '../../viewer3d.js';
-import { viewer, ligandGroup, pocketGroup, analyseLigands, le } from './view.js';
+import { THREE, bond3d, callout, labelBar } from '../../viewer3d.js';
+import { viewer, ligandGroup, pocketGroup, analyseLigands, le, KEYCOL } from './view.js';
 import { quizlet } from './quizlet.js';
 
 export function render(host, api) {
@@ -10,7 +10,7 @@ export function render(host, api) {
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'This is the step students find hardest: the program has given you numbers and poses, so what now? The answer is to add layers of evidence. A compound that looks best on the score alone often looks different once you check interactions, size and the pose.'),
     h('p', {}, `Mock results for ${api.data.target.name}. Celecoxib, the known drug, is included for comparison. Add one layer of evidence at a time and choose your current best compound after each.`));
-  let level = 0; const picks = []; let pick = null, v = null; const dyn = new THREE.Group();
+  let level = 0; const picks = []; let pick = null, v = null; const dyn = new THREE.Group(), names = new THREE.Group();
   const tblWrap = h('div', { class: 'tblwrap' }), stageBox = h('div', {});
   const cols = () => {
     const c = [{ k: 'name', t: 'Compound' }, { k: 'score', t: 'Score (kcal/mol)', num: true }];
@@ -27,6 +27,12 @@ export function render(host, api) {
     const res = level >= 1 ? [...new Set([...l.hbonds, ...l.hydrophobic])] : [];
     dyn.add(pocketGroup(st, { show: res, labels: level >= 1 ? l.hbonds : [], highlight: level >= 2 ? key : [], focus: level >= 1 ? l.hbonds : [] }), ligandGroup(l.atoms, l.bonds, { halo: 3 }));
     if (level >= 1) for (const b of l.hbondList) dyn.add(bond3d(l.atoms[b.atom].p, b.pos));
+    [...names.children].forEach(c => names.remove(c));
+    const cen = l.atoms.reduce((q, a) => [q[0] + a.p[0] / l.atoms.length, q[1] + a.p[1] / l.atoms.length, q[2] + a.p[2] / l.atoms.length], [0, 0, 0]);
+    names.add(callout(`The ligand: ${l.id === 'ref' ? 'celecoxib' : 'compound ' + l.id}`, cen, [10, -7, 5], KEYCOL.ligand));
+    const rl = level >= 1 ? l.hbondList[0] : null, rr = rl && st.pocket.find(r => r.label === rl.res);
+    if (rr) { const at = rr.atoms.reduce((q, a) => [q[0] + a[1] / rr.atoms.length, q[1] + a[2] / rr.atoms.length, q[2] + a[3] / rr.atoms.length], [0, 0, 0]); names.add(callout(`Residue: ${rr.label}`, at, [-9, 3, 5], KEYCOL.residue)); }
+    if (rl) names.add(callout('Hydrogen bond', [(l.atoms[rl.atom].p[0] + rl.pos[0]) / 2, (l.atoms[rl.atom].p[1] + rl.pos[1]) / 2, (l.atoms[rl.atom].p[2] + rl.pos[2]) / 2], [-10, -9, 5], KEYCOL.hbond));
     v.render();
   };
   const draw = () => {
@@ -54,7 +60,7 @@ export function render(host, api) {
   };
   host.append(h('h3', {}, 'Look at it in 3D'));
   v = viewer(host, { height: 440, dist: 34 });
-  if (v) { v.root.add(dyn); host.append(h('p', { class: 'hint' }, 'Glowing yellow beads are hydrogen bonds. Bright sticks are the residues that bond to the compound, and a red glow marks a key residue. Faded sticks are other contacts. Compound A has no sulfonamide: it reaches out of the pocket instead. Residue numbers follow the usual COX-2 literature.')); }
+  if (v) { v.root.add(dyn, names); host.append(labelBar(names, [{ label: 'Ligand: the compound in the pocket', color: KEYCOL.ligand }, { label: 'Residue: a protein amino acid that bonds to it', color: KEYCOL.residue }, { label: 'Hydrogen bond: the glowing beads', color: KEYCOL.hbond }])); host.append(h('p', { class: 'hint' }, 'Glowing yellow beads are hydrogen bonds. Bright sticks are the residues that bond to the compound, and a red glow marks a key residue. Faded sticks are other contacts. Compound A has no sulfonamide: it reaches out of the pocket instead. Residue numbers follow the usual COX-2 literature.')); }
   host.append(tblWrap, stageBox);
   draw();
   host.append(h('div', { class: 'stack' }, h('h3', {}, 'Check your understanding'), quizlet(api, [

@@ -146,3 +146,7 @@ label.field { display: block; font-weight: 700; margin: 12px 0 4px; }
 .pose-stats span b { color: var(--spark-400); font-family: var(--font-display); }
 :root[data-theme="day"] .pose-stats span b { color: var(--uitm-purple); }
 details.fine { margin-top: 10px; } details.fine summary { cursor: pointer; font-family: var(--font-display); font-weight: 700; }
+
+.labelbar { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 10px 0 4px; }
+.labelbar .legend { gap: 8px 16px; }
+.labelbar .legend i { border-radius: 50%; }

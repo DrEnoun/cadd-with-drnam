@@ -1,8 +1,8 @@
 // Step 2 — Search and score, in 3D. The student acts as the search algorithm, then watches the computer try many poses.
 import { h } from '../../ui.js';
-import { modeBar, THREE, bond3d } from '../../viewer3d.js';
+import { modeBar, THREE, bond3d, callout } from '../../viewer3d.js';
 import { rotMat, mul, place, scorePose, makeEnv, scale, add, unit } from './geom.js';
-import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints } from './view.js';
+import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints, nameParts, labelBar, KEYCOL } from './view.js';
 import { quizlet } from './quizlet.js';
 
 const rnd = () => Math.random(), gauss = () => (rnd() + rnd() + rnd() + rnd() - 2) * 1.7;
@@ -19,6 +19,8 @@ export function render(host, api) {
   const hbLines = new THREE.Group();
   if (v) { v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513', 'LEU352', 'SER353'], labels: ['HIS90', 'GLN192', 'ARG513'], highlight: D.target.keyResidues, focus: ['HIS90', 'GLN192', 'ARG513', 'LEU352', 'SER353'] }), lig, ghosts, hbLines); v.view({ yaw: .15, pitch: .15 }); }
 
+  let parts = null, hbCall = null;
+  if (v) { parts = nameParts(v, st, ['ligand', 'residue', 'hbond'], { residueLabel: 'ARG513' }); hbCall = callout('Hydrogen bond', [0, 0, 0], [-9, -9, 5], KEYCOL.hbond); hbCall.visible = false; parts.group.add(hbCall); }
   const meter = h('div', { class: 'meter' }, h('i')), sc = h('b', {}), stats = h('div', { class: 'pose-stats' }), bestLbl = h('p', {}), result = h('p', {});
   const placed = () => place(base, pose).map((p, i) => ({ el: els[i], p }));
   const redraw = (skipBest = false) => {
@@ -31,6 +33,12 @@ export function render(host, api) {
     if (s.total < -7 && !api._found) { api._found = true; api.log('manual_found', s.total.toFixed(1)); }
     hbLines.clear?.(); [...hbLines.children].forEach(c => hbLines.remove(c));
     if (v) for (const b of s.bonds) if (b.e < -0.3) { hbLines.add(bond3d(atoms[b.atom].p, b.pos)); }
+    if (parts) {
+      const c = atoms.reduce((q, a) => [q[0] + a.p[0] / atoms.length, q[1] + a.p[1] / atoms.length, q[2] + a.p[2] / atoms.length], [0, 0, 0]);
+      parts.ligand.userData.set(c, [10, -7, 5]);
+      const f = s.bonds.filter(b => b.e < -0.3).sort((a, b) => a.e - b.e)[0];
+      hbCall.visible = !!f; if (f) hbCall.userData.set([(atoms[f.atom].p[0] + f.pos[0]) / 2, (atoms[f.atom].p[1] + f.pos[1]) / 2, (atoms[f.atom].p[2] + f.pos[2]) / 2], [-9, -9, 5]);
+    }
     v?.render(); return s;
   };
   function dashedLine(a, b) { const g = new THREE.Group(); for (let i = 0; i < 6; i++) { const t = (i + .5) / 6, m = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd23a })); m.position.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); g.add(m); } return g; }
@@ -60,6 +68,7 @@ export function render(host, api) {
     api.log('auto_search', top.s.toFixed(1)); api.done({ manualBest: +best.toFixed(2), autoBest: +top.s.toFixed(2) }); quizSlot.hidden = false;
   }
   host.append(
+    parts ? labelBar(parts.group, parts.items) : null,
     v ? modeBar(v, [['view', 'Rotate the view'], ['move', 'Move the ligand'], ['turn', 'Turn the ligand']]) : h('p', {}, 'Use the fine controls below.'),
     h('p', { class: 'hint' }, 'Tip: pinch or scroll to zoom. Switch to "Rotate the view" to look at the pocket from other sides, because depth is hard to judge from one angle.'),
     h('div', { class: 'row', style: 'margin-top:12px' }, h('div', { class: 'kv' }, h('span', {}, 'Score (kcal/mol, mock)'), sc), h('div', { style: 'flex:1;min-width:160px' }, meter)), stats, bestLbl, fine,

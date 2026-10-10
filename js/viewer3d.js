@@ -137,6 +137,28 @@ export function labelSprite(text, { color = '#ffffff', bg = 'rgba(6,13,27,.78)',
   return s;
 }
 
+/** A named pointer: a coloured pill with text, joined by a line to a point in the scene. at = target, off = where the label sits relative to it. */
+export function callout(text, at, off, color = '#d4ff3a') {
+  const g = new THREE.Group(), end = [at[0] + off[0], at[1] + off[1], at[2] + off[2]], hex = new THREE.Color(color);
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([V(at), V(end)]), new THREE.LineBasicMaterial({ color: hex, depthTest: false, transparent: true, opacity: .95 })); line.renderOrder = 11;
+  const dot = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: hex, depthTest: false })); dot.scale.setScalar(.4); dot.position.set(...at); dot.renderOrder = 11;
+  const cv = document.createElement('canvas'), x = cv.getContext('2d'); x.font = '700 40px "League Spartan", system-ui, sans-serif';
+  const w = Math.ceil(x.measureText(text).width) + 44; cv.width = w; cv.height = 76; x.font = '700 40px "League Spartan", system-ui, sans-serif';
+  x.fillStyle = color; x.beginPath(); x.roundRect(2, 4, w - 4, 68, 30); x.fill(); x.fillStyle = '#0b1220'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, w / 2, 40);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); sp.scale.set(w / 76 * 1.8, 1.8, 1); sp.position.set(...end); sp.renderOrder = 12;
+  g.add(line, dot, sp);
+  g.userData.set = (at2, off2) => { const e2 = [at2[0] + off2[0], at2[1] + off2[1], at2[2] + off2[2]]; line.geometry.setFromPoints([V(at2), V(e2)]); dot.position.set(...at2); sp.position.set(...e2); };
+  return g;
+}
+/** Buttons and a key under a viewer: "Names on/off" and a coloured legend. items: [{label, color}]. */
+export function labelBar(group, items) {
+  const wrap = h('div', { class: 'labelbar' });
+  const btn = h('button', { class: 'sticker', type: 'button', 'aria-pressed': 'true', onclick: () => { const on = btn.getAttribute('aria-pressed') !== 'true'; btn.setAttribute('aria-pressed', String(on)); btn.textContent = on ? 'Names: on' : 'Names: off'; group.visible = on; } }, 'Names: on');
+  wrap.append(btn, h('div', { class: 'legend' }, items.map(i => h('span', {}, h('i', { style: `background:${i.color}` }), i.label))));
+  return wrap;
+}
+
 /** Dashed line made of small beads (used for hydrogen bonds). */
 export function dashed(a, b, color = 0xffd23a, n = 7) {
   const g = new THREE.Group();

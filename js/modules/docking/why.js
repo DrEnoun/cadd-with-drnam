@@ -1,15 +1,17 @@
 // Step 1 — Why dock? A rotating 3D picture, matching scenarios to purposes, then the workflow.
 import { h, feedback } from '../../ui.js';
-import { viewer, ligandGroup, pocketGroup, ligandAtoms } from './view.js';
+import { viewer, ligandGroup, pocketGroup, ligandAtoms, nameParts, labelBar } from './view.js';
 
 export function render(host, api) {
   const { why } = api.data;
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Before any button is pressed, a good scientist can say what question docking is answering. If you cannot name the question, you cannot judge the result.'),
     h('p', { class: 'lead' }, 'Docking predicts two things: ', h('strong', {}, 'the pose'), ' (where and how the ligand sits in the pocket) and ', h('strong', {}, 'a score'), ' (an estimate of how strongly it binds). It does not measure binding, and it does not prove a compound is a drug.'));
-  const v = viewer(host, { height: 400, autoRotate: true, dist: 62 });
+  const v = viewer(host, { height: 400, autoRotate: true, dist: 54 });
   if (v) {
     v.root.add(pocketGroup(api.data.structure, { show: ['HIS90', 'GLN192', 'ARG513'], labels: ['HIS90', 'GLN192', 'ARG513'], focus: ['HIS90', 'GLN192', 'ARG513'] }), ligandGroup(ligandAtoms(api.data), api.data.structure.ligand.bonds, { halo: 3.5 }));
+    const parts = nameParts(v, api.data.structure, ['ligand', 'residue', 'protein', 'haem']);
+    host.append(labelBar(parts.group, parts.items));
     host.append(h('p', { class: 'hint' }, 'The real COX-2 enzyme (PDB 3LN1), cut open, with the drug celecoxib (the ligand, lime and green) sitting in its pocket. The sticks are the pocket residues that touch the drug. Drag to turn it, pinch or scroll to zoom. COX-2 makes the chemical signals behind pain and inflammation, so blocking it can relieve both.'));
   }
   host.append(h('h3', { style: 'margin-top:20px' }, 'Match each situation to what docking is used for'));
