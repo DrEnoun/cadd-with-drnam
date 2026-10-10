@@ -1,6 +1,6 @@
 // Module 1 — Molecular Docking. A guided mission: pre-test, 8 steps, post-test + survey.
 // Each step file exports render(host, api). api: { data, done(info), log(item, value), next, prev }.
-import { h, fetchJson } from '../../ui.js';
+import { h, fetchJson, art } from '../../ui.js';
 import { store } from '../../store.js';
 import { consentScreen, runTest, runSurvey, exportCsv } from '../../eval.js';
 
@@ -66,9 +66,8 @@ export default function mount(host, ctx) {
   }
 
   function intro() {
-    host.append(h('section', { class: 'glass stack' },
-      h('p', { class: 'eyebrow' }, 'Module 1'),
-      h('h1', {}, 'Molecular Docking'),
+    host.append(h('section', { class: 'banner' }, art('docking', '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, 'Module 1'), h('h1', {}, 'Molecular Docking'), h('p', { class: 'lead' }, 'How a drug-like molecule fits a protein, and what to check afterwards.'))),
+      h('section', { class: 'glass stack', style: 'margin-top:20px' },
       h('p', { class: 'lead' }, 'Docking is a computer experiment that predicts how a small molecule (a ligand) fits into a protein pocket and how strongly it may bind. Many students can run the software but are not sure why they do each step or what to look at afterwards. This module fixes that.'),
       h('h3', {}, 'By the end you can:'),
       h('ul', {},
@@ -78,7 +77,7 @@ export default function mount(host, ctx) {
          'Validate a protocol by redocking and judge the RMSD.',
          'Analyse results: score, interactions, key residues and ligand efficiency, not the score alone.',
          'Decide which compound to take forward and justify the choice.'].map(t => h('li', {}, t))),
-      h('p', { class: 'muted' }, 'It takes about 40 to 60 minutes. All data is mock. Works on phone, tablet and computer, with mouse or touch.'),
+      h('p', { class: 'muted' }, 'It takes about 40 to 60 minutes. The protein is the real COX-2 structure; the docking poses and scores are mock. Works on phone, tablet and computer, with mouse or touch.'),
       h('div', { class: 'row' }, h('a', { class: 'btn-start', href: `#/${M}/${store.test(M, 'pre') ? STEPS[0].id : 'pre'}`, style: 'text-decoration:none' }, store.test(M, 'pre') ? 'Continue' : 'Start with the pre-test →'))));
   }
 

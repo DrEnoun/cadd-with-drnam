@@ -1,5 +1,5 @@
 // CADD with Dr. NAM: hash router, home, record and about pages.
-import { h, download } from './ui.js';
+import { h, download, art } from './ui.js';
 import { store } from './store.js';
 import { modules, byId } from './modules/registry.js';
 import { exportCsv } from './eval.js';
@@ -32,18 +32,26 @@ function home() {
   document.title = 'CADD with Dr. NAM';
   app.append(
     h('section', { class: 'hero' },
-      h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
-      h('div', {},
-        h('p', { class: 'eyebrow' }, 'Chemistry with Dr. NAM'),
-        h('h1', {}, 'CADD with Dr. NAM'),
-        h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations with mock data, so they work with any software you use later.'))),
+      art('docking', '', { eager: true, sizes: '100vw', cls: 'hero__bg' }),
+      h('div', { class: 'hero__shade' }),
+      h('div', { class: 'hero__content' },
+        h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
+        h('div', {},
+          h('p', { class: 'eyebrow' }, 'Chemistry with Dr. NAM'),
+          h('h1', {}, 'CADD with Dr. NAM'),
+          h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations, so they work with any software you use later.'),
+          h('a', { class: 'btn-start', href: '#/docking', style: 'text-decoration:none' }, 'Start Module 1 →'))),
+      h('span', { class: 'hero__cap' }, 'Illustration: a drug-like molecule in a protein pocket')),
+    h('h2', { class: 'section-title' }, 'Four modules'),
     h('div', { class: 'mods' }, modules.map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
-      h('span', { class: 'mod__n' }, `Module ${m.n}`),
-      h('h3', {}, m.title), h('p', {}, m.blurb),
-      m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : h('span', { class: 'tag tag--soon' }, 'Coming soon')))),
+      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
+      h('div', { class: 'mod__body' },
+        h('span', { class: 'mod__n' }, `Module ${m.n}`),
+        h('h3', {}, m.title), h('p', {}, m.blurb),
+        m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : null)))),
     h('section', { class: 'glass stack' },
       h('h2', {}, 'How each module works'),
-      h('p', {}, '1. A short pre-test shows what you already know. 2. You work through the steps as a mission, and every step starts with “Why do we do this?”. 3. The final step asks you to decide and justify, like a real project. 4. A post-test and short survey finish the module.')));
+      h('div', { class: 'howto' }, [['1', 'Pre-test', 'A short test shows what you already know.'], ['2', 'The mission', 'Work through the steps. Every step starts with “Why do we do this?”.'], ['3', 'Decide', 'The last step asks you to choose and justify, like a real project.'], ['4', 'Post-test', 'The same questions again, then a short survey.']].map(([n, t, d]) => h('div', { class: 'howto__item' }, h('b', {}, n), h('div', {}, h('strong', {}, t), h('p', {}, d)))))));
 }
 
 function record() {
@@ -71,9 +79,9 @@ function about() {
     h('h1', {}, 'About'),
     h('p', {}, 'CADD with Dr. NAM is a set of interactive concept simulations for computer-aided drug design. It teaches the fundamental ideas and workflow behind each technique, whatever software students use later.'),
     h('p', {}, h('strong', {}, 'The protein and drug in Module 1 are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
-    h('p', {}, 'Modules: 1 Molecular Docking (ready), 2 Virtual Screening, 3 ADME Prediction, 4 Homology Modelling (coming).'),
+    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n}. ${m.title}${m.status === 'ready' ? '' : ' (coming)'}`)))),
     h('p', {}, 'Privacy: the site has no server and collects nothing. Your progress and answers are stored in your own browser, and you choose whether to download and submit them.'),
-    h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content.')));
+    h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content. The module illustrations are artistic, not to scale, and were supplied by the author.')));
 }
 
 addEventListener('hashchange', route);
