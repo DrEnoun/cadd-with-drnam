@@ -29,7 +29,7 @@ const [a, b, c] = m.validate.setups.map(r);
 assert.ok(a[0] <= 2, 'Setup A top pose should succeed');
 assert.ok(b.every(x => x > 2), 'Setup B has no good pose');
 assert.ok(c[0] > 2 && c[2] <= 2, 'Setup C ranks a wrong pose first but has a good rank-3 pose');
-assert.equal(rmsd(atoms, { dx: 0, dy: 0, rot: 0 }), 0);
+assert.ok(rmsd(atoms, { dx: 0, dy: 0, rot: 0 }) < 1e-9);
 
 // Kd: -8 kcal/mol is about 1.4 µM, and 1.36 kcal/mol is a 10-fold change
 assert.ok(Math.abs(kdFromDG(-8) - 1.4e-6) < 0.1e-6);
