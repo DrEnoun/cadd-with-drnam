@@ -9,6 +9,15 @@ export const COLORS = { C: 0xd4ff3a, N: 0x4d8dff, O: 0xff5a5a, S: 0xffd23a, H: 0
 const RADIUS = { C: 0.55, N: 0.52, O: 0.5, S: 0.7, F: 0.45, H: 0.35 };
 const V = a => new THREE.Vector3(a[0], a[1], a[2]);
 
+// ---- glow: soft additive halos that pulse gently, drawn through the protein so interactions are always easy to see
+const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.55)'); g.addColorStop(.6, 'rgba(255,255,255,.14)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const glowMats = new Map();
+function glowMat(color, a = 1) { const k = `${color}:${a}`; let m = glowMats.get(k); if (!m) { m = new THREE.SpriteMaterial({ map: glowTex, color, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, depthTest: false }); m.userData.a = a; glowMats.set(k, m); } return m; }
+/** A soft glowing halo (additive sprite) of the given colour and size in Å. */
+export function glow(pos, color, size = 3, alpha = 1) { const s = new THREE.Sprite(glowMat(color, alpha)); s.position.set(pos[0], pos[1], pos[2]); s.scale.setScalar(size); s.renderOrder = 8; return s; }
+
 export function webglOk() {
   try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; }
 }
@@ -69,6 +78,7 @@ export function createViewer(host, { height = 420, autoRotate = false, dist = 56
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (st.autoRotate && st.mode === 'view' && !ptr.size) { st.yaw += dt * 0.35; place(); }
     api.onFrame?.(dt);
+    if (glowMats.size) { st.t = (st.t || 0) + dt; st.acc = (st.acc || 0) + dt; if (st.acc > .06) { st.acc = 0; const k = .72 + .28 * Math.sin(st.t * 3.2); for (const m of glowMats.values()) m.opacity = m.userData.a * k; st.dirty = true; } }
     if (st.dirty) { renderer.render(scene, camera); st.dirty = false; }
     raf = requestAnimationFrame(loop);
   };
@@ -108,12 +118,13 @@ function setStick(m, a, b, r) {
 }
 
 /** Ball-and-stick ligand. atoms: [{el,p}], bonds: [[i,j]]. Use .setAtoms(newAtoms) to move it. */
-export function ligandGroup(atoms, bonds, { carbon = COLORS.C, opacity = 1, outline = true, polarMark = false } = {}) {
-  const g = new THREE.Group(); const balls = [], sticks = [];
+export function ligandGroup(atoms, bonds, { carbon = COLORS.C, opacity = 1, outline = true, halo = 0 } = {}) {
+  const g = new THREE.Group(); const balls = [], sticks = [], halos = [];
+  if (halo) atoms.forEach(a => { const h = glow(a.p, carbon, halo, .22); g.add(h); halos.push(h); });
   atoms.forEach(a => { const m = ball(a.el === 'C' ? carbon : COLORS[a.el] ?? 0xcccccc, RADIUS[a.el] ?? .6, opacity, outline); m.position.copy(V(a.p)); g.add(m); balls.push(m); });
   bonds.forEach(([i, j]) => { const m = stick(atoms[i].p, atoms[j].p, .2, a2(atoms[i], atoms[j], carbon), opacity, outline); g.add(m); sticks.push(m); });
   function a2(a, b, c) { return a.el === 'C' && b.el === 'C' ? c : a.el === 'C' ? COLORS[b.el] : COLORS[a.el]; }
-  g.userData.setAtoms = next => { next.forEach((a, i) => balls[i].position.copy(V(a.p))); bonds.forEach(([i, j], k) => setStick(sticks[k], next[i].p, next[j].p, .2)); };
+  g.userData.setAtoms = next => { next.forEach((a, i) => { balls[i].position.copy(V(a.p)); halos[i]?.position.copy(V(a.p)); }); bonds.forEach(([i, j], k) => setStick(sticks[k], next[i].p, next[j].p, .2)); };
   return g;
 }
 
@@ -130,6 +141,14 @@ export function labelSprite(text, { color = '#ffffff', bg = 'rgba(6,13,27,.78)',
 export function dashed(a, b, color = 0xffd23a, n = 7) {
   const g = new THREE.Group();
   for (let i = 0; i < n; i++) { const t = (i + .5) / n; const m = ball(color, .17, 1, false); m.position.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); g.add(m); }
+  return g;
+}
+
+/** A hydrogen bond: a string of bright beads with halos, easy to see through the protein. */
+export function bond3d(a, b, color = 0xffe14a, n = 6) {
+  const g = new THREE.Group();
+  for (let i = 0; i < n; i++) { const t = (i + .5) / n, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    const m = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: 0xfff6b0, depthTest: false })); m.scale.setScalar(.3); m.position.set(...p); m.renderOrder = 9; g.add(m); g.add(glow(p, color, 2.2)); }
   return g;
 }
 
@@ -153,7 +172,7 @@ function bicolor(g, a, b, ca, cb, r) {
   g.add(stick(a, m, r, ca), stick(m, b, r, cb));
 }
 const CUT = [new THREE.Plane(new THREE.Vector3(0, 0, -1), 3)]; // hides the front half of the ribbon so the pocket can be seen
-function ribbon(ca) {
+function ribbon(ca, opacity = 1) {
   const g = new THREE.Group(), segs = []; let cur = [];
   ca.forEach((c, i) => { if (i && Math.hypot(c[0] - ca[i - 1][0], c[1] - ca[i - 1][1], c[2] - ca[i - 1][2]) > 4.6) { segs.push(cur); cur = []; } cur.push(c); });
   segs.push(cur);
@@ -166,7 +185,7 @@ function ribbon(ca) {
       if (pts.length >= 2) {
         const curve = pts.length > 2 ? new THREE.CatmullRomCurve3(pts, false, 'catmullrom', .5) : new THREE.LineCurve3(pts[0], pts[1]);
         const m = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(4, pts.length * 4), rad[seg[i][3]], 8, false),
-          new THREE.MeshStandardMaterial({ color: mat[seg[i][3]], roughness: .45, metalness: .05, clippingPlanes: CUT, side: THREE.DoubleSide }));
+          new THREE.MeshStandardMaterial({ color: mat[seg[i][3]], roughness: .45, metalness: .05, clippingPlanes: CUT, side: THREE.DoubleSide, transparent: opacity < 1, opacity, depthWrite: opacity >= 1 }));
         g.add(m);
       }
       i = j + 1;
@@ -175,17 +194,18 @@ function ribbon(ca) {
   return g;
 }
 /** The protein scene from data/docking/cox2.json. opts: labels (residue labels to name), highlight (labels to ring), show ('all' | labels). */
-export function pocketGroup(st, { labels = [], highlight = [], show = 'all', ribbon: withRibbon = true, heme = true } = {}) {
+export function pocketGroup(st, { labels = [], highlight = [], focus = [], show = 'all', ribbon: withRibbon = true, heme = true, dim = true } = {}) {
   const g = new THREE.Group();
-  if (withRibbon) g.add(ribbon(st.ca));
+  if (withRibbon) g.add(ribbon(st.ca, dim ? .4 : 1));
   if (heme && st.heme?.atoms.length) { const at = st.heme.atoms; st.heme.bonds.forEach(([i, j]) => bicolor(g, at[i].slice(1), at[j].slice(1), at[i][0] === 'C' ? 0xff9f43 : COLORS[at[i][0]] ?? 0xff9f43, at[j][0] === 'C' ? 0xff9f43 : COLORS[at[j][0]] ?? 0xff9f43, .12)); }
   for (const r of st.pocket) {
     if (show !== 'all' && !show.includes(r.label)) continue;
-    const at = r.atoms;
-    r.bonds.forEach(([i, j]) => bicolor(g, at[i].slice(1, 4), at[j].slice(1, 4), COLORS[at[i][0]] ?? COLORS.rC, COLORS[at[j][0]] ?? COLORS.rC, .13));
+    const at = r.atoms, foc = focus.includes(r.label), th = foc ? .2 : .1;
+    r.bonds.forEach(([i, j]) => bicolor(g, at[i].slice(1, 4), at[j].slice(1, 4), COLORS[at[i][0]] ?? COLORS.rC, COLORS[at[j][0]] ?? COLORS.rC, th));
     at.forEach(a => { if (a[0] !== 'C') { const b = ball(COLORS[a[0]] ?? 0xcccccc, .3, 1, false); b.position.set(a[1], a[2], a[3]); g.add(b); } });
     const ctr = at.reduce((s, a) => [s[0] + a[1] / at.length, s[1] + a[2] / at.length, s[2] + a[3] / at.length], [0, 0, 0]);
-    if (highlight.includes(r.label)) { const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, .12, 8, 32), new THREE.MeshBasicMaterial({ color: 0xfc7a7a, depthTest: false, transparent: true })); ring.position.set(...ctr); ring.renderOrder = 9; ring.userData.billboard = true; g.add(ring); }
+    if (highlight.includes(r.label)) g.add(glow(ctr, 0xff6b6b, 9, 1));
+    if (foc) g.add(glow(ctr, 0x5eead4, 6, 1));
     if (labels.includes(r.label)) { const l = labelSprite(r.label, { size: 5 }); const o = unit(ctr); l.position.set(ctr[0] + o[0] * 3.2, ctr[1] + o[1] * 3.2 + 1, ctr[2] + o[2] * 3.2); g.add(l); }
   }
   return g;

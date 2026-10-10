@@ -1,6 +1,6 @@
 // Step 2 — Search and score, in 3D. The student acts as the search algorithm, then watches the computer try many poses.
 import { h } from '../../ui.js';
-import { modeBar, THREE } from '../../viewer3d.js';
+import { modeBar, THREE, bond3d } from '../../viewer3d.js';
 import { rotMat, mul, place, scorePose, makeEnv, scale, add, unit } from './geom.js';
 import { viewer, ligandGroup, pocketGroup, ligandAtoms, ligandPoints } from './view.js';
 import { quizlet } from './quizlet.js';
@@ -15,9 +15,9 @@ export function render(host, api) {
     h('p', {}, 'Try it yourself: put the ligand into the pocket. Use the buttons to choose what dragging does. A ', h('strong', {}, 'good pose'), ' makes the hydrogen bonds of the sulfonamide group (yellow dots), tucks the greasy rings and CF₃ group into the hydrophobic channel, and has no clashes with the protein. Hint: the sulfonamide (the yellow S with two red O and a blue N) belongs near His90, Gln192 and Arg513.'));
   const pose = { R: rotMat([0, 1, 1], 70), t: [3, -2, 2] }; let best = Infinity;
   const v = viewer(host, { height: 460, dist: 34 });
-  const lig = ligandGroup(ligandAtoms(D), st.ligand.bonds); const ghosts = new THREE.Group();
+  const lig = ligandGroup(ligandAtoms(D), st.ligand.bonds, { halo: 3 }); const ghosts = new THREE.Group();
   const hbLines = new THREE.Group();
-  if (v) { v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513', 'LEU352', 'SER353'], labels: ['HIS90', 'GLN192', 'ARG513'], highlight: D.target.keyResidues }), lig, ghosts, hbLines); v.view({ yaw: .15, pitch: .15 }); }
+  if (v) { v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513', 'LEU352', 'SER353'], labels: ['HIS90', 'GLN192', 'ARG513'], highlight: D.target.keyResidues, focus: ['HIS90', 'GLN192', 'ARG513', 'LEU352', 'SER353'] }), lig, ghosts, hbLines); v.view({ yaw: .15, pitch: .15 }); }
 
   const meter = h('div', { class: 'meter' }, h('i')), sc = h('b', {}), stats = h('div', { class: 'pose-stats' }), bestLbl = h('p', {}), result = h('p', {});
   const placed = () => place(base, pose).map((p, i) => ({ el: els[i], p }));
@@ -30,7 +30,7 @@ export function render(host, api) {
     if (!skipBest && s.total < best) { best = s.total; bestLbl.textContent = `Your best so far: ${best.toFixed(1)} kcal/mol (mock units).`; }
     if (s.total < -7 && !api._found) { api._found = true; api.log('manual_found', s.total.toFixed(1)); }
     hbLines.clear?.(); [...hbLines.children].forEach(c => hbLines.remove(c));
-    if (v) for (const b of s.bonds) if (b.e < -0.3) { hbLines.add(dashedLine(atoms[b.atom].p, b.pos)); }
+    if (v) for (const b of s.bonds) if (b.e < -0.3) { hbLines.add(bond3d(atoms[b.atom].p, b.pos)); }
     v?.render(); return s;
   };
   function dashedLine(a, b) { const g = new THREE.Group(); for (let i = 0; i < 6; i++) { const t = (i + .5) / 6, m = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd23a })); m.position.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); g.add(m); } return g; }

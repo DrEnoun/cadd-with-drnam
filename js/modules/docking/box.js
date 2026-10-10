@@ -14,7 +14,7 @@ export function render(host, api) {
   const bg = boxGroup();
   if (v) {
     const glow = new THREE.Mesh(new THREE.SphereGeometry(B.pocketRadius, 32, 24), new THREE.MeshBasicMaterial({ color: 0xfc7a7a, transparent: true, opacity: .22, depthWrite: false }));
-    v.root.add(pocketGroup(api.data.structure, { show: [] }), ligandGroup(ligandAtoms(api.data), api.data.structure.ligand.bonds), glow, bg);
+    v.root.add(pocketGroup(api.data.structure, { show: [] }), ligandGroup(ligandAtoms(api.data), api.data.structure.ligand.bonds, { halo: 3 }), glow, bg);
     v.onDrag = (mode, dx, dy, c) => { if (mode === 'move') { box.c = add(box.c, add(scale(c.right, dx * c.perPx), scale(c.up, -dy * c.perPx))); draw(); } };
   }
   const info = h('div', {}), fill = h('i');

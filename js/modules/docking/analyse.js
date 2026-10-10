@@ -1,7 +1,7 @@
 // Step 7 — Analyse results. Evidence is added layer by layer; the best pick often changes.
 // Hydrogen bonds, hydrophobic contacts, key residues and efficiency are computed from the 3D coordinates.
 import { h, feedback } from '../../ui.js';
-import { THREE, dashed } from '../../viewer3d.js';
+import { THREE, bond3d } from '../../viewer3d.js';
 import { viewer, ligandGroup, pocketGroup, analyseLigands, le } from './view.js';
 import { quizlet } from './quizlet.js';
 
@@ -25,8 +25,8 @@ export function render(host, api) {
     if (!v) return; [...dyn.children].forEach(c => dyn.remove(c));
     const l = ligands.find(x => x.id === (pick || 'ref'));
     const res = level >= 1 ? [...new Set([...l.hbonds, ...l.hydrophobic])] : [];
-    dyn.add(pocketGroup(st, { show: res, labels: level >= 1 ? l.hbonds : [], highlight: level >= 2 ? key : [] }), ligandGroup(l.atoms, l.bonds));
-    if (level >= 1) for (const b of l.hbondList) dyn.add(dashed(l.atoms[b.atom].p, b.pos));
+    dyn.add(pocketGroup(st, { show: res, labels: level >= 1 ? l.hbonds : [], highlight: level >= 2 ? key : [], focus: level >= 1 ? l.hbonds : [] }), ligandGroup(l.atoms, l.bonds, { halo: 3 }));
+    if (level >= 1) for (const b of l.hbondList) dyn.add(bond3d(l.atoms[b.atom].p, b.pos));
     v.render();
   };
   const draw = () => {
@@ -54,7 +54,7 @@ export function render(host, api) {
   };
   host.append(h('h3', {}, 'Look at it in 3D'));
   v = viewer(host, { height: 440, dist: 34 });
-  if (v) { v.root.add(dyn); host.append(h('p', { class: 'hint' }, 'Yellow dots are hydrogen bonds. Sticks are the pocket residues that touch the compound. A red ring marks a key residue. Compound A has no sulfonamide: it reaches out of the pocket instead. Residue numbers follow the usual COX-2 literature.')); }
+  if (v) { v.root.add(dyn); host.append(h('p', { class: 'hint' }, 'Glowing yellow beads are hydrogen bonds. Bright sticks are the residues that bond to the compound, and a red glow marks a key residue. Faded sticks are other contacts. Compound A has no sulfonamide: it reaches out of the pocket instead. Residue numbers follow the usual COX-2 literature.')); }
   host.append(tblWrap, stageBox);
   draw();
   host.append(h('div', { class: 'stack' }, h('h3', {}, 'Check your understanding'), quizlet(api, [

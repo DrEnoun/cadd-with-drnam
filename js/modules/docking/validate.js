@@ -15,7 +15,7 @@ export function render(host, api) {
     h('div', { class: 'legend' }, h('span', {}, h('i', { style: 'background:#d4ff3a' }), 'Crystal ligand (the truth)'), h('span', {}, h('i', { style: 'background:#fc7a7a' }), 'Docked pose'), h('span', {}, 'Dotted lines join matching atoms')));
   const v = viewer(host, { height: 440, dist: 34 });
   const dyn = new THREE.Group();
-  if (v) v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513'] }), ligandGroup(ligandAtoms(D), st.ligand.bonds), dyn);
+  if (v) v.root.add(pocketGroup(st, { show: ['HIS90', 'GLN192', 'ARG513'] }), ligandGroup(ligandAtoms(D), st.ligand.bonds, { halo: 3 }), dyn);
   let si = 0, pi = 0;
   const info = h('div', {}), setupTabs = h('div', { class: 'row' }), poseTabs = h('div', { class: 'row' });
   const draw = () => {
@@ -23,7 +23,7 @@ export function render(host, api) {
     const r = rmsd(base, q);
     if (v) {
       [...dyn.children].forEach(c => dyn.remove(c));
-      dyn.add(ligandGroup(q.map((pp, i) => ({ el: els[i], p: pp })), st.ligand.bonds, { carbon: 0xfc7a7a }));
+      dyn.add(ligandGroup(q.map((pp, i) => ({ el: els[i], p: pp })), st.ligand.bonds, { carbon: 0xfc7a7a, halo: 3 }));
       base.forEach((b, i) => dyn.add(dashed(b, q[i], 0xffffff, 5)));
       v.render();
     }
