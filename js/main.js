@@ -59,7 +59,7 @@ function home() {
           h('h1', {}, 'CADD with Dr. NAM'),
           h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations, so they work with any software you use later.'),
           h('a', { class: 'btn-start', href: '#/docking', style: 'text-decoration:none' }, 'Start Module 1 →')))),
-    h('h2', { class: 'section-title' }, 'Five modules'),
+    h('h2', { class: 'section-title' }, 'Six modules'),
     h('div', { class: 'mods' }, modules.map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
       h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
       h('div', { class: 'mod__body' },

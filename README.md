@@ -36,6 +36,12 @@ Celecoxib and inflammation. Steps: why a network → targets (tool thresholds an
 - Real: the network mathematics (tested in `npm test`).
 - Mock, and labelled as such: the data set (`data/network/network.json`, built by `tools/make-network-data.py`) is hand-written teaching data. Prediction probabilities, disease scores, interaction confidences, pathway sizes and the "studied" ratings are illustrative, not exports from SwissTargetPrediction, GeneCards, DisGeNET, STRING or KEGG. The "known" labels on celecoxib targets must be checked against the literature. To use real data, replace the file with exports in the same format.
 
+## Module 6 — Molecular Dynamics
+Celecoxib in COX-2 (3LN1). Steps: why simulate (the pocket with a drug that moves along simulated curves) → forces and time step (a real small MD engine in the browser: Lennard-Jones particles, velocity Verlet, energy conservation, blow-up with a large step) → temperature (thermostat, melting, equilibration, g(r)) → set-up workflow (put nine steps in order) → reading results (RMSD, ligand RMSD, distance, radius of gyration, hydrogen bonds, RMSF, discard slider, block-averaged errors) → decide (three runs, MM-GBSA, claims, report).
+- Real: the particle simulation and the analysis maths (tested in `npm test`); from 3LN1 the radius of gyration, the crystallographic B-factors used for the RMSF reference line, and the geometry of the possible hydrogen-bond partners of celecoxib.
+- Simulated, and labelled as such on screen: the three 100 ns celecoxib–COX-2 runs (protein and ligand RMSD, distance, radius of gyration, hydrogen-bond counts, RMSF, MM-GBSA values and the per-residue energy splitting). They come from a stochastic model in `tools/make-md-data.py` (correlated noise, relaxation, one ligand-escape event, one drifting run), not from GROMACS or another MD program. The 3D drug motion in step 1 is drawn from the simulated distance curve. To use real data, replace `data/md/runs.json` with series in the same format.
+- Workflow wording follows the NAM-NPeasy protocol (Phase H).
+
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
 - **Pre-test and post-test** with the same 10 concept questions (`data/docking/quiz.json`), with explanations after the post-test.

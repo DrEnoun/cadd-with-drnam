@@ -5,5 +5,6 @@ export const modules = [
   { id: 'adme', art: 'adme', n: 3, title: 'ADME Prediction', blurb: 'A strong binder is not a drug if the body cannot absorb or clear it.', status: 'ready', load: () => import('./adme/index.js') },
   { id: 'homology', art: 'homology', n: 4, title: 'Homology Modelling', blurb: 'No structure? Build a model from a related protein and check its quality.', status: 'ready', load: () => import('./homology/index.js') },
   { id: 'network', art: 'network', n: 5, title: 'Network Pharmacology', blurb: 'One drug rarely hits one protein. Map all its targets and see how they act together.', status: 'ready', load: () => import('./network/index.js') },
+  { id: 'md', art: 'md', n: 6, title: 'Molecular Dynamics', blurb: 'Does the docked pose survive when everything moves? Learn how MD works and how to read it.', status: 'ready', load: () => import('./md/index.js') },
 ];
 export const byId = id => modules.find(m => m.id === id);
