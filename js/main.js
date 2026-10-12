@@ -117,7 +117,7 @@ function about() {
     h('h1', {}, 'About'),
     h('p', {}, 'CADD with Dr. NAM is a set of interactive concept simulations for computer-aided drug design. It teaches the fundamental ideas and workflow behind each technique, whatever software students use later.'),
     h('p', {}, h('strong', {}, 'The protein and drug in the project are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C in the docking module are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
-    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n ?? '★'}. ${m.title}${m.aiImage === false ? ' (screenshot of the site)' : ' (AI-generated illustration)'}`)))),
+    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n ?? '★'}. ${m.title}${' (AI-generated illustration)'}`)))),
     h('p', {}, 'Privacy: the site has no server and collects nothing. Your progress and answers are stored in your own browser, and you choose whether to download and submit them.'),
     h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content. The illustrations are AI-generated, used for educational purposes, artistic, not to scale and not scientific data (see the disclaimer).'), h('p', {}, h('a', { href: '#/disclaimer' }, 'Disclaimer and disclosures'))));
 }

@@ -238,5 +238,5 @@ console.log('Handbook OK');
 import { SHORT as DSHORT, AI_NOTE } from '../js/disclaimer.js';
 assert.ok(/educational/i.test(DSHORT) && /medical advice/i.test(DSHORT) && /AI-generated/.test(AI_NOTE) && /educational purposes/.test(AI_NOTE));
 const idx = fsx.readFileSync('index.html', 'utf8'); assert.ok(/AI-generated/.test(idx) && /#\/disclaimer/.test(idx) && /Educational use only/.test(idx), 'the footer carries the disclaimer on every page');
-assert.ok(/id: 'md', art: 'md', aiImage: false/.test(fsx.readFileSync('js/modules/registry.js', 'utf8')), 'the MD picture is a screenshot, not AI-generated');
+assert.ok(!/aiImage: false/.test(fsx.readFileSync('js/modules/registry.js', 'utf8')), 'every module picture is AI-generated and carries the badge'); assert.ok(/logo/i.test(fsx.readFileSync('js/disclaimer.js', 'utf8')), 'the logo is disclosed');
 console.log('Disclaimer OK');
