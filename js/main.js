@@ -18,12 +18,13 @@ document.getElementById('btn-theme').addEventListener('click', () => { store.set
 async function route() {
   cleanup?.(); cleanup = null; app.innerHTML = '';
   const [, page = '', ...rest] = location.hash.replace(/^#/, '').split('/');
-  document.querySelectorAll('.toolbar a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === `#/${['results', 'about'].includes(page) ? page : ''}`)));
+  document.querySelectorAll('.toolbar a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === `#/${['results', 'about', 'project'].includes(page) ? page : ''}`)));
   const m = byId(page);
   if (m?.status === 'ready') {
     const mod = await m.load();
     cleanup = mod.default(app, { route: rest, module: m }) || null;
-  } else if (page === 'results') record();
+  } else if (page === 'project') cleanup = (await import('./project/index.js')).default(app, { route: rest }) || null;
+  else if (page === 'results') record();
   else if (page === 'about') about();
   else cleanup = home() || null;
   window.scrollTo(0, 0);
@@ -68,6 +69,8 @@ function home() {
         h('span', { class: 'mod__n' }, `Module ${m.n}`),
         h('h3', {}, m.title), h('p', {}, m.blurb),
         m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : null)))),
+    h('h2', { class: 'section-title' }, 'Your own project'),
+    h('a', { class: 'card sticker-static', href: '#/project', style: 'display:block;text-decoration:none' }, h('span', { class: 'mod__n' }, 'Hands-on'), h('h3', { style: 'margin:4px 0' }, 'Project workbook'), h('p', { style: 'margin:0 0 8px' }, 'Do your own CADD project in your own software. The workbook asks the questions a supervisor would ask, checks your numbers, flags common mistakes and builds your report.'), h('span', { class: 'go' }, 'Open the workbook →')),
     h('h2', { class: 'section-title' }, 'Stand-alone module'),
     h('div', { class: 'mods mods--single' }, modules.filter(m => m.standalone).map(m => h('a', { class: 'mod sticker-static', href: `#/${m.id}` },
       h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`)),

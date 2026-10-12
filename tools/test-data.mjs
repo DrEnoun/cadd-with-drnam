@@ -191,3 +191,23 @@ story.standalone.forEach(s => assert.ok(regIds.includes(s.id))); assert.ok(regSr
 const mdI = fs.readFileSync(new URL('../js/modules/md/index.js', import.meta.url), 'utf8'); assert.ok(/cand' \+ choice/.test(mdI), 'MD takes its candidate from the docking choice');
 assert.ok(J('data/adme/drugs.json').extras.map(e => e.name).join().includes('Compound B') && J('data/adme/drugs.json').extras.every(e => e.atoms.length && e.mock));
 console.log('Project story OK');
+
+// ---------- project workbook
+import * as WB from '../js/project/rules.js';
+const wbSpec = J('data/project/workbook.json'), wbEx = J('data/project/example.json'), ids = new Set();
+for (const s of wbSpec.stages) { assert.ok(!ids.has(s.id) && s.why && s.mistakes.length, s.id); ids.add(s.id); const fids = new Set(); for (const f of s.fields) { assert.ok(!fids.has(f.id) && f.label && ['text', 'textarea', 'number', 'select', 'checks', 'table'].includes(f.type), `${s.id}.${f.id}`); fids.add(f.id); if (f.type === 'select' || f.type === 'checks') assert.ok(f.options.length >= 2); if (f.type === 'table') f.columns.forEach(c => assert.ok(!c.computed || WB.COMPUTED[c.computed], c.id)); } }
+assert.ok(WB.COMPUTED.ligandEfficiency({ score: -10.4, ha: 26 }) === 0.4 && WB.COMPUTED.ro5({ mw: 600, logp: 6, hbd: 1, hba: 3 }) === 2 && WB.COMPUTED.veber({ tpsa: 150, rotb: 3 }) === 'fails' && WB.COMPUTED.veber({}) === null);
+const wbGood = WB.overview(wbSpec, wbEx.good), wbBad = WB.overview(wbSpec, wbEx.flawed);
+assert.ok(wbGood.ready && wbGood.blocks === 0 && wbGood.warns === 0, 'the good example has no problems'); assert.ok(!wbBad.ready && wbBad.blocks >= 8 && wbBad.warns >= 15, `the flawed example is caught: ${wbBad.blocks} serious, ${wbBad.warns} warnings`);
+const sev = (stage, data) => WB.stageChecks(stage, data).map(c => c.sev + ':' + c.text.slice(0, 20));
+assert.ok(WB.stageChecks('docking', { docking: {} }).some(c => c.sev === 'block' && /redocking/i.test(c.text)), 'no redocking is serious'); assert.ok(WB.stageChecks('docking', { docking: { redockRmsd: 3.1 } }).some(c => c.sev === 'warn' && /2 Å/.test(c.text)) && WB.stageChecks('docking', { docking: { redockRmsd: 1.2 } }).some(c => c.sev === 'ok'));
+assert.ok(WB.stageChecks('screening', { screening: { funnel: [{ step: 'a', n: 100 }, { step: 'b', n: 200 }] } }).some(c => c.sev === 'block'), 'a filter cannot add compounds');
+assert.ok(WB.stageChecks('network', { network: { nCompound: 100, nDisease: 200, nOverlap: 150 } }).some(c => c.sev === 'block') && WB.stageChecks('network', { network: { selection: 'topn' } }).some(c => /top N/.test(c.text)));
+assert.ok(WB.stageChecks('md', { md: { dt: 4, constraints: 'no' } }).some(c => c.sev === 'block') && WB.stageChecks('md', { md: { replicas: 1 } }).some(c => /one replica/i.test(c.text)) && WB.stageChecks('md', { md: { left: 'yes', dG: -40 } }).some(c => c.sev === 'block'));
+assert.ok(WB.stageChecks('target', { target: { source: 'hm', identity: 25 } }).some(c => c.sev === 'block') && WB.stageChecks('target', { target: { source: 'af', plddt: 55 } }).some(c => c.sev === 'block') && WB.stageChecks('conclude', { conclude: { claim: 'proof' } }).some(c => c.sev === 'block'));
+assert.ok(WB.stageChecks('adme', { adme: { route: 'oral', table: [{ name: 'X', gi: 'low' }] } }).some(c => c.sev === 'block'));
+const cp = WB.completeness(wbSpec.stages[0], { setup: { title: 'x' } }); assert.ok(cp.total === 6 && cp.done === 1 && cp.missing.length === 5);
+assert.ok(WB.usedStages(wbSpec, { setup: { stages: ['screening'] } }).join() === 'setup,screening,conclude' && WB.usedStages(wbSpec, { setup: {} }).length === 8);
+const rep = WB.report(wbSpec, wbEx.good, { code: 'T', date: '2026-01-01' }); assert.ok(rep.startsWith('# EXAMPLE') && /\| Compound B \|/.test(rep) && /ligand efficiency/i.test(rep) && /all required fields are filled/.test(rep));
+assert.ok(WB.report(wbSpec, wbEx.flawed, {}).includes('[serious]'));
+console.log('Project workbook OK');

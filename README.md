@@ -52,6 +52,15 @@ Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate
 - Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
 - Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
 
+## Project workbook (hands-on)
+`#/project` is a guided lab notebook for a student's **own** project, done in their own software (AutoDock Vina, SwissADME, STRING, GROMACS, anything). It does not run calculations. It records them and checks them.
+- Eight stages: set-up, target structure, virtual screening, docking, ADME, network pharmacology, molecular dynamics, conclusions. Each has "why this stage", common mistakes, a link to the matching concept module, and fields for the numbers and decisions.
+- **Automatic review** (`js/project/rules.js`, pure and tested): rule-based checks, shown live beside the form. Examples: no redocking test, redocking RMSD above 2 Å, choosing on the docking score alone, a funnel that grows, an overlap larger than either list, a time step that is too large, a single MD replica, an unconverged run, an energy quoted from a run where the ligand left, and calling a prediction proof. Computed columns: ligand efficiency, rule-of-five breaks, Veber.
+- Two worked examples (`data/project/example.json`, all numbers made up): a careful project and one with typical mistakes, so students can see the checks fire and practise fixing them.
+- **Outputs:** a Markdown report, a project file (JSON) to keep or send to a supervisor, and a **supervisor view** (`#/project/review`) that opens a student's file in the browser and shows the same checks, with a place to write comments and download them as a feedback file. Nothing is uploaded.
+- Everything is stored in the browser only. Free text is not logged for research; only that a stage was opened.
+- The wording is in `data/project/workbook.json` (built by `tools/make-workbook-spec.py`), the thresholds in `js/project/rules.js`. They follow common practice (redocking RMSD under 2 Å, STRING 0.7, FDR 0.05, rule of five) and should be checked by the supervisor.
+
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
 - **Pre-test and post-test** with the same 10 concept questions (`data/docking/quiz.json`), with explanations after the post-test.
