@@ -9,13 +9,6 @@ Interactive, software-agnostic concept simulations for computer-aided drug desig
 | 3. ADME Prediction | Ready |
 | 4. Homology Modelling | Planned |
 
-## Module 2 — Molecular Docking
-Pre-test → Why dock? → Search and score → Prepare → Search box → Scoring → Validate (redocking, RMSD) → Analyse (layers of evidence) → Decide and justify (report) → Post-test and survey.
-
-The pictures are interactive **3D cartoon-style molecules** (three.js, bundled in `vendor/`, works offline): a cut-open mock protein with a pocket, a ball-and-stick ligand, residue sticks, dotted hydrogen bonds and a 3D search box. Drag to turn, pinch or scroll to zoom. If a browser has no WebGL, the controls and feedback still work.
-
-Every step opens with a "Why do we do this?" box and ends with a check of understanding.
-
 ## One project, five connected modules
 The course follows one story, **Project COX-2** (`data/case.json`): find a better anti-inflammatory drug that blocks COX-2. Order: 1 Virtual Screening → 2 Molecular Docking → 3 ADME Prediction → 4 Network Pharmacology → 5 Molecular Dynamics. Homology Modelling is stand-alone (it teaches the method on another protein, because COX-2 already has a structure; in a real project it would come first). The order lives in `js/modules/registry.js`.
 
@@ -31,15 +24,17 @@ Pre-test → Why screen? (3D funnel and your own funnel numbers) → The library
 
 **Real data:** the 45 drugs are real (18 known COX inhibitors and 27 drugs for other targets, including PAINS scaffolds). Properties (molecular weight, cLogP, polar surface area, donors and acceptors, rotatable bonds, Lipinski and PAINS flags) and the 3D shapes are computed with RDKit, and each shape was overlaid on the crystal celecoxib from 3LN1. **Mock:** the docking-style score (it is built from the real overlap and size plus pharmacophore features, with fixed noise) and the funnel numbers. Rebuild the data with `python3 tools/prepare-library.py` (needs `pip install rdkit numpy`). "Active" means a known COX inhibitor in the literature: please check each one before publication.
 
+## Module 2 — Molecular Docking
+Pre-test → Why dock? → Search and score → Prepare → Search box → Scoring → Validate (redocking, RMSD) → Analyse (layers of evidence) → Decide and justify (report) → Post-test and survey.
+
+The pictures are interactive **3D cartoon-style molecules** (three.js, bundled in `vendor/`, works offline): a cut-open mock protein with a pocket, a ball-and-stick ligand, residue sticks, dotted hydrogen bonds and a 3D search box. Drag to turn, pinch or scroll to zoom. If a browser has no WebGL, the controls and feedback still work.
+
+Every step opens with a "Why do we do this?" box and ends with a check of understanding.
+
 ## Module 3 — ADME Prediction
 Pre-test → The journey (an animated 3D body based on the four-panel overview picture: mouth, stomach and gut, portal vein and liver with CYP enzymes, heart, brain and muscle, kidneys and bladder; a tablet travels the real route, blue dots are the drug and orange dots are metabolites; match failures to A, D, M or E) → Absorption (a BOILED-Egg style map of 45 real drugs, a movable probe, ESOL solubility and a "does the dose dissolve?" check) → pH and ions (Henderson-Hasselbalch curves and a membrane where only the neutral form crosses) → Metabolism (soft spots glowing on the real 3D molecule, predict the main reaction, compare with the known route) → Half-life (a concentration-time simulator with repeated doses) → Choose (an ADME report card for eight candidates, justification, report) → Post-test and survey.
 
 **Real data:** the 45 drugs and their 3D shapes are the same as Module 1. cLogP (Crippen), polar surface area, ESOL solubility and the soft-spot atoms are computed with RDKit (`python3 tools/prepare-adme.py`). **Simplified or typical values:** the egg ellipses are a teaching approximation of the BOILED-Egg (Daina and Zoete, 2016), not the published model; the soft-spot finder uses simple structural rules; pKa values and pharmacokinetic values (F, V, half-life, ka) are rounded typical adult figures (`data/adme/teaching.json`). Please check them against a standard reference before publication. The pharmacokinetic maths (one-compartment oral model, AUC = F·D/CL, accumulation) is tested in `npm test`.
-
-## Stand-alone — Homology Modelling
-Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate templates: GluA3 (3O21, 3P3W, 6FLR) and two unrelated proteins (1AKE, 3MHT). Steps: why model (Chothia-Lesk curve, 3D overlay) → choose a template → align (Gotoh affine gaps, BLOSUM62) → build a C-alpha model → validate (Ramachandran, environment check, expected error, reveal the true structure) → decide and download a report.
-- Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
-- Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
 
 ## Module 4 — Network Pharmacology
 Celecoxib and inflammation. Steps: why a network → targets (tool thresholds and a live Venn diagram) → interaction network (confidence cut-off) → hubs (degree, betweenness, closeness; remove a node; study bias) → pathway enrichment (hypergeometric test, Benjamini-Hochberg, choice of background, bubble chart) → decide and download a report. The workflow follows the NAM-NPeasy protocol (Dr Nur 'Ainun Mokhtar).
@@ -51,6 +46,11 @@ Celecoxib in COX-2 (3LN1). Steps: why simulate (the pocket with a drug that move
 - Real: the particle simulation and the analysis maths (tested in `npm test`); from 3LN1 the radius of gyration, the crystallographic B-factors used for the RMSF reference line, and the geometry of the possible hydrogen-bond partners of celecoxib.
 - Simulated, and labelled as such on screen: the three 100 ns celecoxib–COX-2 runs (protein and ligand RMSD, distance, radius of gyration, hydrogen-bond counts, RMSF, MM-GBSA values and the per-residue energy splitting). They come from a stochastic model in `tools/make-md-data.py` (correlated noise, relaxation, one ligand-escape event, one drifting run), not from GROMACS or another MD program. The 3D drug motion in step 1 is drawn from the simulated distance curve. To use real data, replace `data/md/runs.json` with series in the same format.
 - Workflow wording follows the NAM-NPeasy protocol (Phase H).
+
+## Stand-alone — Homology Modelling
+Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate templates: GluA3 (3O21, 3P3W, 6FLR) and two unrelated proteins (1AKE, 3MHT). Steps: why model (Chothia-Lesk curve, 3D overlay) → choose a template → align (Gotoh affine gaps, BLOSUM62) → build a C-alpha model → validate (Ramachandran, environment check, expected error, reveal the true structure) → decide and download a report.
+- Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
+- Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
 
 ## For educational research
 - **Consent screen** (research / learning only) with a random participant code. No name, email or ID is collected.
