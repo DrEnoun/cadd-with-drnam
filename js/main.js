@@ -3,6 +3,7 @@ import { h, download, art } from './ui.js';
 import { store } from './store.js';
 import { modules, byId } from './modules/registry.js';
 import { exportCsv } from './eval.js';
+import { describe, chainIds, downloadProject } from './case.js';
 
 const app = document.getElementById('app');
 let cleanup = null;
@@ -58,14 +59,19 @@ function home() {
           h('p', { class: 'eyebrow' }, 'Chemistry with Dr. NAM'),
           h('h1', {}, 'CADD with Dr. NAM'),
           h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations, so they work with any software you use later.'),
-          h('a', { class: 'btn-start', href: '#/docking', style: 'text-decoration:none' }, 'Start Module 1 →')))),
-    h('h2', { class: 'section-title' }, 'Six modules'),
-    h('div', { class: 'mods' }, modules.map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
+          h('a', { class: 'btn-start', href: '#/screening', style: 'text-decoration:none' }, 'Start Module 1 →')))),
+    h('h2', { class: 'section-title' }, 'One project, five connected modules'),
+    h('p', { class: 'lead' }, 'Follow one drug-discovery project from a big compound library to a tested candidate. Each module hands its result to the next. Do them in order for the full story.'),
+    h('div', { class: 'mods' }, modules.filter(m => !m.standalone).map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
       h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
       h('div', { class: 'mod__body' },
         h('span', { class: 'mod__n' }, `Module ${m.n}`),
         h('h3', {}, m.title), h('p', {}, m.blurb),
         m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : null)))),
+    h('h2', { class: 'section-title' }, 'Stand-alone module'),
+    h('div', { class: 'mods mods--single' }, modules.filter(m => m.standalone).map(m => h('a', { class: 'mod sticker-static', href: `#/${m.id}` },
+      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`)),
+      h('div', { class: 'mod__body' }, h('span', { class: 'mod__n' }, 'Stand-alone'), h('h3', {}, m.title), h('p', {}, m.blurb), h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →'))))),
     h('section', { class: 'glass stack' },
       h('h2', {}, 'How each module works'),
       h('div', { class: 'howto' }, [['1', 'Pre-test', 'A short test shows what you already know.'], ['2', 'The mission', 'Work through the steps. Every step starts with “Why do we do this?”.'], ['3', 'Decide', 'The last step asks you to choose and justify, like a real project.'], ['4', 'Post-test', 'The same questions again, then a short survey.']].map(([n, t, d]) => h('div', { class: 'howto__item' }, h('b', {}, n), h('div', {}, h('strong', {}, t), h('p', {}, d)))))));
@@ -84,6 +90,9 @@ function record() {
     h('h1', {}, 'My record'),
     h('p', {}, 'This is stored only in this browser. Download it to keep it, or to submit it to your lecturer if you agreed to take part.'),
     h('p', {}, h('strong', {}, 'Your code: '), d.code || 'not created yet (it appears when you start a module)'),
+    h('h2', {}, 'My project file'),
+    h('ol', {}, chainIds().map(id => h('li', {}, h('strong', {}, byId(id).title + ': '), describe(id) || 'not done yet'))),
+    h('div', { class: 'row' }, h('button', { class: 'sticker', type: 'button', onclick: downloadProject }, 'Download my project file (.txt)')),
     h('div', { class: 'tblwrap' }, h('table', { class: 'tbl' }, h('thead', {}, h('tr', {}, ['Module', 'Steps done', 'Pre-test', 'Post-test', 'Usability (0–100)'].map(t => h('th', {}, t)))), h('tbody', {}, rows))),
     h('div', { class: 'row' },
       h('button', { class: 'btn-start btn-start--small', type: 'button', onclick: exportCsv }, 'Download my record (CSV)'),
@@ -96,8 +105,8 @@ function about() {
   app.append(h('section', { class: 'glass stack' },
     h('h1', {}, 'About'),
     h('p', {}, 'CADD with Dr. NAM is a set of interactive concept simulations for computer-aided drug design. It teaches the fundamental ideas and workflow behind each technique, whatever software students use later.'),
-    h('p', {}, h('strong', {}, 'The protein and drug in Module 1 are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
-    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n}. ${m.title}${m.status === 'ready' ? '' : ' (coming)'}`)))),
+    h('p', {}, h('strong', {}, 'The protein and drug in the project are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C in the docking module are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
+    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n ?? '★'}. ${m.title}${m.status === 'ready' ? '' : ' (coming)'}`)))),
     h('p', {}, 'Privacy: the site has no server and collects nothing. Your progress and answers are stored in your own browser, and you choose whether to download and submit them.'),
     h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content. The module illustrations are artistic, not to scale, and were supplied by the author.')));
 }

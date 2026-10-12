@@ -1,6 +1,7 @@
 // Step 7 — Pick hits: choose a short, varied, inspected list from the consensus ranking, justify it, and make a report.
 import { h, feedback, download } from '../../ui.js';
 import { store } from '../../store.js';
+import { saveCase } from '../../case.js';
 import { consensusScore, rankBy } from './stats.js';
 import { inspector } from './scenes.js';
 
@@ -37,7 +38,7 @@ export function render(host, api) {
     let maxSim = 0; for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) maxSim = Math.max(maxSim, sim[idx(arr[i])][idx(arr[j])]);
     const painsN = arr.filter(c => c.pains).length, nextRight = T.decide.nextSteps.filter(n => n.right && next.has(n.id)).length, nextWrong = T.decide.nextSteps.filter(n => !n.right && next.has(n.id)).length;
     ['picks', 'hits', 'pains', 'nextRight', 'nextWrong'].forEach((k, i) => api.log(k, [arr.map(c => c.name).join(' + '), hits, painsN, nextRight, nextWrong][i]));
-    store.setNote('screening', 'justification', text.value.trim());
+    store.setNote('screening', 'justification', text.value.trim()); saveCase('screening', { picks: arr.map(c => c.name), hits, painsInPicks: painsN });
     api.done({ picks: arr.length, hits, painsInPicks: painsN, maxSimilarity: +maxSim.toFixed(2), nextRight, nextWrong, words: text.value.trim().split(/\s+/).length });
     const body = ['VIRTUAL SCREENING SUMMARY (library of real drugs; docking-style score is mock)', `Participant code: ${store.get('code') || '-'}`, '', `Target: ${T.target.name} (PDB ${T.target.pdb}); reference ligand: ${T.target.drug}`, '',
       `Compounds sent for testing (${arr.length}): ${arr.map(c => c.name).join(', ')}`, `Known actives among them: ${hits} of ${arr.length} (library hit rate ${(base * 100).toFixed(0)}%, enrichment ${(rate / base).toFixed(1)})`, `Most similar pair (Tanimoto): ${maxSim.toFixed(2)}; PAINS compounds: ${painsN}`, '',

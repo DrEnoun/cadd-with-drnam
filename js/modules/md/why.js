@@ -7,9 +7,10 @@ export function render(host, api) {
   const D = api.data, T = D.teaching, R = D.runs;
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Docking gives one frozen picture of a drug in a pocket, and it scores that picture as if the protein were a rigid statue. Real proteins and drugs are always moving. Molecular dynamics (MD) lets the atoms move for a while on the computer and asks: does the drug stay where docking put it?'),
+    D.fromCase ? h('div', { class: 'card sticker-static' }, h('strong', {}, 'Your project: '), `in docking you chose Compound ${D.choice}. Run 2 below is that compound. Run 1 is celecoxib, the known drug, as the control.`) : '',
     h('p', { class: 'lead' }, 'Below is celecoxib in the COX-2 pocket (the structure 3LN1 from the other modules). Pick a run and drag the time slider. The motion of the drug is drawn from the simulated curves, so you can see what a stable and an unstable pose look like.'));
   const v = complexScene(host, D.structure, { height: 440 });
-  let key = 'A', frame = 0, timer = 0;
+  let key = Object.keys(R)[0], frame = 0, timer = 0;
   const cv = h('canvas', { style: 'width:100%;max-width:640px;border-radius:12px;background:#fff', role: 'img', 'aria-label': 'Distance of the drug from the pocket against time' }), read = h('div', { class: 'num', style: 'font-weight:700' });
   const sl = h('input', { type: 'range', min: 0, max: D.time.length - 1, value: 0, 'aria-label': 'Simulation time', style: 'width:100%;max-width:640px', oninput: () => { frame = +sl.value; upd(); } });
   const bar = h('div', { class: 'row' }, Object.keys(R).map(k => h('button', { type: 'button', class: 'sticker', 'aria-pressed': String(k === key), 'data-k': k, onclick: () => { key = k; bar.querySelectorAll('button[data-k]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); upd(); api.log('run', k); } }, R[k].name)));

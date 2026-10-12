@@ -1,11 +1,13 @@
 // Step 1 — Why dock? A rotating 3D picture, matching scenarios to purposes, then the workflow.
 import { h, feedback } from '../../ui.js';
 import { viewer, ligandGroup, pocketGroup, ligandAtoms, nameParts, labelBar } from './view.js';
+import { caseOf } from '../../case.js';
 
 export function render(host, api) {
   const { why } = api.data;
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Before any button is pressed, a good scientist can say what question docking is answering. If you cannot name the question, you cannot judge the result.'),
+    h('div', { class: 'card sticker-static' }, h('strong', {}, 'Where this fits in the project: '), caseOf('screening') ? `screening gave you the shortlist ${caseOf('screening').picks.join(', ')}. Many of these resemble celecoxib. ` : 'screening finds compounds that might fit. ', 'Docking now looks closely at how a candidate sits in the COX-2 pocket. To learn what to check, we use celecoxib in its real crystal pose and three mock, celecoxib-like compounds, A, B and C. Each stands for a situation every team meets: a big compound with an inflated score, a good analogue, and a small fragment. You will choose one to carry forward.'),
     h('p', { class: 'lead' }, 'Docking predicts two things: ', h('strong', {}, 'the pose'), ' (where and how the ligand sits in the pocket) and ', h('strong', {}, 'a score'), ' (an estimate of how strongly it binds). It does not measure binding, and it does not prove a compound is a drug.'));
   const v = viewer(host, { height: 400, autoRotate: true, dist: 54 });
   if (v) {

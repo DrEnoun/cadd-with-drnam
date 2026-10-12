@@ -9,14 +9,24 @@ Interactive, software-agnostic concept simulations for computer-aided drug desig
 | 3. ADME Prediction | Ready |
 | 4. Homology Modelling | Planned |
 
-## Module 1 — Molecular Docking
+## Module 2 — Molecular Docking
 Pre-test → Why dock? → Search and score → Prepare → Search box → Scoring → Validate (redocking, RMSD) → Analyse (layers of evidence) → Decide and justify (report) → Post-test and survey.
 
 The pictures are interactive **3D cartoon-style molecules** (three.js, bundled in `vendor/`, works offline): a cut-open mock protein with a pocket, a ball-and-stick ligand, residue sticks, dotted hydrogen bonds and a 3D search box. Drag to turn, pinch or scroll to zoom. If a browser has no WebGL, the controls and feedback still work.
 
 Every step opens with a "Why do we do this?" box and ends with a check of understanding.
 
-## Module 2 — Virtual Screening
+## One project, five connected modules
+The course follows one story, **Project COX-2** (`data/case.json`): find a better anti-inflammatory drug that blocks COX-2. Order: 1 Virtual Screening → 2 Molecular Docking → 3 ADME Prediction → 4 Network Pharmacology → 5 Molecular Dynamics. Homology Modelling is stand-alone (it teaches the method on another protein, because COX-2 already has a structure; in a real project it would come first). The order lives in `js/modules/registry.js`.
+
+Each module saves its decision in a *case file* (`js/case.js`, stored in the browser as `case`) and the next module uses it:
+- **Screening** saves the student's shortlist → **Docking** shows it, then the student chooses a candidate (A, B or C, which are mock celecoxib analogues standing for three typical situations).
+- **ADME** builds its report-card list from the docking choice (compounds B and C have RDKit-computed properties in `data/adme/drugs.json` → `extras`, labelled mock) and the screening shortlist, plus contrast compounds.
+- **Network** carries the ADME picks forward in its story strip (target data exist only for celecoxib, the reference drug).
+- **Molecular dynamics** runs the docking candidate as Run 2 next to celecoxib: B stays, A leaves the pocket, C moves around. All simulated.
+Each module opens with a story strip showing where it sits and what the student brings in. If a student skips a module, sensible defaults are used. The "My record" page lists the project and downloads a project file.
+
+## Module 1 — Virtual Screening
 Pre-test → Why screen? (3D funnel and your own funnel numbers) → The library (45 real drugs in 3D property space, with an inspector) → Property filters (Lipinski and Veber, with false negatives) → Prepare (salts, duplicates, PAINS, charge, 3D) → Two methods (ligand-based shape overlay vs structure-based score, in the COX-2 pocket) → Did it work? (ROC curves, AUC, enrichment factor) → Pick hits (diversity, alerts, justification, report) → Post-test and survey.
 
 **Real data:** the 45 drugs are real (18 known COX inhibitors and 27 drugs for other targets, including PAINS scaffolds). Properties (molecular weight, cLogP, polar surface area, donors and acceptors, rotatable bonds, Lipinski and PAINS flags) and the 3D shapes are computed with RDKit, and each shape was overlaid on the crystal celecoxib from 3LN1. **Mock:** the docking-style score (it is built from the real overlap and size plus pharmacophore features, with fixed noise) and the funnel numbers. Rebuild the data with `python3 tools/prepare-library.py` (needs `pip install rdkit numpy`). "Active" means a known COX inhibitor in the literature: please check each one before publication.
@@ -24,19 +34,19 @@ Pre-test → Why screen? (3D funnel and your own funnel numbers) → The library
 ## Module 3 — ADME Prediction
 Pre-test → The journey (an animated 3D body based on the four-panel overview picture: mouth, stomach and gut, portal vein and liver with CYP enzymes, heart, brain and muscle, kidneys and bladder; a tablet travels the real route, blue dots are the drug and orange dots are metabolites; match failures to A, D, M or E) → Absorption (a BOILED-Egg style map of 45 real drugs, a movable probe, ESOL solubility and a "does the dose dissolve?" check) → pH and ions (Henderson-Hasselbalch curves and a membrane where only the neutral form crosses) → Metabolism (soft spots glowing on the real 3D molecule, predict the main reaction, compare with the known route) → Half-life (a concentration-time simulator with repeated doses) → Choose (an ADME report card for eight candidates, justification, report) → Post-test and survey.
 
-**Real data:** the 45 drugs and their 3D shapes are the same as Module 2. cLogP (Crippen), polar surface area, ESOL solubility and the soft-spot atoms are computed with RDKit (`python3 tools/prepare-adme.py`). **Simplified or typical values:** the egg ellipses are a teaching approximation of the BOILED-Egg (Daina and Zoete, 2016), not the published model; the soft-spot finder uses simple structural rules; pKa values and pharmacokinetic values (F, V, half-life, ka) are rounded typical adult figures (`data/adme/teaching.json`). Please check them against a standard reference before publication. The pharmacokinetic maths (one-compartment oral model, AUC = F·D/CL, accumulation) is tested in `npm test`.
+**Real data:** the 45 drugs and their 3D shapes are the same as Module 1. cLogP (Crippen), polar surface area, ESOL solubility and the soft-spot atoms are computed with RDKit (`python3 tools/prepare-adme.py`). **Simplified or typical values:** the egg ellipses are a teaching approximation of the BOILED-Egg (Daina and Zoete, 2016), not the published model; the soft-spot finder uses simple structural rules; pKa values and pharmacokinetic values (F, V, half-life, ka) are rounded typical adult figures (`data/adme/teaching.json`). Please check them against a standard reference before publication. The pharmacokinetic maths (one-compartment oral model, AUC = F·D/CL, accumulation) is tested in `npm test`.
 
-## Module 4 — Homology Modelling
+## Stand-alone — Homology Modelling
 Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate templates: GluA3 (3O21, 3P3W, 6FLR) and two unrelated proteins (1AKE, 3MHT). Steps: why model (Chothia-Lesk curve, 3D overlay) → choose a template → align (Gotoh affine gaps, BLOSUM62) → build a C-alpha model → validate (Ramachandran, environment check, expected error, reveal the true structure) → decide and download a report.
 - Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
 - Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
 
-## Module 5 — Network Pharmacology
+## Module 4 — Network Pharmacology
 Celecoxib and inflammation. Steps: why a network → targets (tool thresholds and a live Venn diagram) → interaction network (confidence cut-off) → hubs (degree, betweenness, closeness; remove a node; study bias) → pathway enrichment (hypergeometric test, Benjamini-Hochberg, choice of background, bubble chart) → decide and download a report. The workflow follows the NAM-NPeasy protocol (Dr Nur 'Ainun Mokhtar).
 - Real: the network mathematics (tested in `npm test`).
 - Mock, and labelled as such: the data set (`data/network/network.json`, built by `tools/make-network-data.py`) is hand-written teaching data. Prediction probabilities, disease scores, interaction confidences, pathway sizes and the "studied" ratings are illustrative, not exports from SwissTargetPrediction, GeneCards, DisGeNET, STRING or KEGG. The "known" labels on celecoxib targets must be checked against the literature. To use real data, replace the file with exports in the same format.
 
-## Module 6 — Molecular Dynamics
+## Module 5 — Molecular Dynamics
 Celecoxib in COX-2 (3LN1). Steps: why simulate (the pocket with a drug that moves along simulated curves) → forces and time step (a real small MD engine in the browser: Lennard-Jones particles, velocity Verlet, energy conservation, blow-up with a large step) → temperature (thermostat, melting, equilibration, g(r)) → set-up workflow (put nine steps in order) → reading results (RMSD, ligand RMSD, distance, radius of gyration, hydrogen bonds, RMSF, discard slider, block-averaged errors) → decide (three runs, MM-GBSA, claims, report).
 - Real: the particle simulation and the analysis maths (tested in `npm test`); from 3LN1 the radius of gyration, the crystallographic B-factors used for the RMSF reference line, and the geometry of the possible hydrogen-bond partners of celecoxib.
 - Simulated, and labelled as such on screen: the three 100 ns celecoxib–COX-2 runs (protein and ligand RMSD, distance, radius of gyration, hydrogen-bond counts, RMSF, MM-GBSA values and the per-residue energy splitting). They come from a stochastic model in `tools/make-md-data.py` (correlated noise, relaxation, one ligand-escape event, one drifting run), not from GROMACS or another MD program. The 3D drug motion in step 1 is drawn from the simulated distance curve. To use real data, replace `data/md/runs.json` with series in the same format.
@@ -71,10 +81,10 @@ The home-page banner is `assets/img/hero.webp` (2000 px, plus a 1000 px version)
 | `js/eval.js`, `js/store.js` | Consent, tests, survey, CSV export; local storage |
 | `js/modules/registry.js` | List of modules (add one here to add a module) |
 | `js/modules/flow.js` | Shared flow for every module: intro, consent, pre-test, steps, post-test, survey |
-| `js/modules/docking/` | Module 1: `index.js` (its steps) and one file per step |
+| `js/modules/docking/` | Module 2: `index.js` (its steps) and one file per step |
 | `js/modules/adme/` | Module 3: `stats.js` (pure maths: egg map, ESOL classes, ionisation, pharmacokinetics), `scenes.js` (3D journey and molecule inspector) and one file per step |
 | `data/adme/` | `drugs.json` (RDKit properties, soft spots), `teaching.json`, `quiz.json`; built by `tools/prepare-adme.py` |
-| `js/modules/screening/` | Module 2: `stats.js` (pure maths: filters, ROC, enrichment), `scenes.js` (3D cloud, funnel, inspector) and one file per step |
+| `js/modules/screening/` | Module 1: `stats.js` (pure maths: filters, ROC, enrichment), `scenes.js` (3D cloud, funnel, inspector) and one file per step |
 | `js/viewer3d.js` | 3D viewer and cartoon parts (atoms, bonds, pocket, box, labels) |
 | `js/modules/docking/geom.js` | Pure 3D maths (poses, RMSD, toy scoring function), tested in Node |
 | `data/screening/` | `library.json` (real drugs, RDKit properties and 3D shapes), `teaching.json`, `quiz.json`; built by `tools/prepare-library.py` |

@@ -4,6 +4,7 @@
 import { h, fetchJson, art } from '../ui.js';
 import { store } from '../store.js';
 import { consentScreen, runTest, runSurvey, exportCsv } from '../eval.js';
+import { storyStrip, nextModule, downloadProject } from '../case.js';
 
 /** The same 'back to the main page' button everywhere in a module. */
 const backBtn = (cls = '') => h('a', { class: `sticker back-main ${cls}`.trim(), href: '#/', 'aria-label': 'Back to the main page' }, '⌂ Back to main page');
@@ -59,8 +60,10 @@ export default function mountModule(def, host, ctx) {
   }
 
   function intro() {
-    const n = def.number;
-    host.append(h('div', { class: 'modbar' }, backBtn()), h('section', { class: 'banner' }, art(def.art, '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, `Module ${n}`), h('h1', {}, def.title), h('p', { class: 'lead' }, def.blurb))),
+    const n = def.number, story = h('div');
+    storyStrip(M).then(el => story.replaceWith(el)).catch(() => {});
+    host.append(h('div', { class: 'modbar' }, backBtn()), h('section', { class: 'banner' }, art(def.art, '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, n == null ? 'Stand-alone module' : `Module ${n} of 5`), h('h1', {}, def.title), h('p', { class: 'lead' }, def.blurb))),
+      story,
       h('section', { class: 'glass stack', style: 'margin-top:20px' },
       h('p', { class: 'lead' }, def.intro),
       h('h3', {}, 'By the end you can:'),
@@ -102,6 +105,9 @@ export default function mountModule(def, host, ctx) {
           h('button', { class: 'btn-start btn-start--small', type: 'button', onclick: exportCsv }, 'Download my record (CSV)'),
           h('a', { class: 'sticker', style: 'text-decoration:none', href: '#/results' }, 'See my record'),
           h('a', { class: 'sticker', style: 'text-decoration:none', href: '#/' }, '⌂ Back to main page')));
+      const nx = nextModule(M);
+      if (nx) box.append(h('div', { class: 'card sticker-static', style: 'margin-top:12px' }, h('strong', {}, `Next in the project: Module ${nx.n}, ${nx.title}`), h('p', { style: 'margin:6px 0' }, 'Your decisions from this module are saved and will be used there.'), h('a', { class: 'btn-start btn-start--small', style: 'text-decoration:none', href: `#/${nx.id}` }, `Continue to Module ${nx.n} →`)));
+      else if (def.number != null) box.append(h('div', { class: 'card sticker-static', style: 'margin-top:12px' }, h('strong', {}, 'You reached the end of the project'), h('p', { style: 'margin:6px 0' }, 'Download your project file: every decision you made, from screening to the pose test.'), h('button', { class: 'btn-start btn-start--small', type: 'button', onclick: downloadProject }, 'Download my project file (.txt)')));
     };
     if (post && store.isDone(M, 'finish')) return summary();
     if (post) return doSurvey();

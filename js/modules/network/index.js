@@ -1,4 +1,4 @@
-// Module 5 — Network Pharmacology: pre-test, 6 steps, post-test + survey (see ../flow.js).
+// Module 4 — Network Pharmacology: pre-test, 6 steps, post-test + survey (see ../flow.js).
 import { fetchJson } from '../../ui.js';
 import mountModule from '../flow.js';
 
@@ -12,7 +12,7 @@ export const STEPS = [
 ];
 
 const def = {
-  id: 'network', number: 5, title: 'Network Pharmacology', art: 'network', quiz: 'data/network/quiz.json', steps: STEPS,
+  id: 'network', number: 4, title: 'Network Pharmacology', art: 'network', quiz: 'data/network/quiz.json', steps: STEPS,
   blurb: 'One drug rarely hits one protein. Map all its targets and see how they act together.',
   intro: 'A drug usually binds more than one protein, and a disease involves many proteins at once. Network pharmacology puts them on one map: the targets of the drug, the genes of the disease, the interactions between the proteins, and the pathways they belong to. This module follows the standard workflow with celecoxib and inflammation, and shows where the thresholds, the hubs and the statistics can mislead.',
   outcomes: ['Explain what network pharmacology adds to docking, and what polypharmacology means.', 'Collect drug targets and disease genes with sensible thresholds, and find their overlap.', 'Build an interaction network and say what the confidence cut-off changes.', 'Find hubs with degree, betweenness and closeness, and explain why a hub is not automatically a good drug target.', 'Run and read a pathway enrichment: the hypergeometric test, multiple-testing correction and the choice of background.', 'Choose what to validate in the laboratory and state honestly what the network does and does not show.'],

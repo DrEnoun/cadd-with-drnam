@@ -2,6 +2,9 @@
 import { h, feedback, download } from '../../ui.js';
 import { store } from '../../store.js';
 import { summarise, verdict } from './stats.js';
+import { saveCase } from '../../case.js';
+
+const VTEXT = { stable: 'the pose stayed in the pocket and the system settled', left: 'the drug left the pocket', drifting: 'the system did not settle', unclear: 'unclear: the drug moved around a lot' };
 
 export function render(host, api) {
   const D = api.data, T = D.teaching, R = D.runs, keys = Object.keys(R), S = Object.fromEntries(keys.map(k => [k, summarise(R[k], D.time, 20)])), V = Object.fromEntries(keys.map(k => [k, verdict(S[k])]));
@@ -23,6 +26,7 @@ export function render(host, api) {
     if (text.value.trim().length < 30) return out.replaceChildren(feedback('bad', 'Write a short justification (at least a sentence or two).'));
     const C = T.decide.claims.find(c => c.id === use.value), v = V[pick], good = v === 'stable', right = T.decide.next.filter(n => n.right && next.has(n.id)).length, wrong = T.decide.next.filter(n => !n.right && next.has(n.id)).length, s = S[pick];
     api.log('run', pick); api.log('verdict', v); api.log('claim', use.value); api.log('nextRight', right); api.log('nextWrong', wrong); store.setNote('md', 'justification', text.value.trim());
+    saveCase('md', { run: pick, runName: R[pick].name, verdict: v, verdictText: VTEXT[v] });
     api.done({ run: pick, verdict: v, chosenStable: good ? 1 : 0, claimOk: C.ok ? 1 : 0, nextRight: right, nextWrong: wrong, words: text.value.trim().split(/\s+/).length });
     const body = ['MOLECULAR DYNAMICS SUMMARY (simulated teaching curves; not a real MD run)', `Participant code: ${store.get('code') || '-'}`, '', `System: celecoxib in COX-2 (structure 3LN1), 100 ns, first 20 ns discarded`, `Chosen run: ${R[pick].name} (judged ${v})`,
       `Protein RMSD ${s.prot.mean.toFixed(2)} +/- ${s.prot.sem.toFixed(2)} A; ligand RMSD ${s.lig.mean.toFixed(2)} +/- ${s.lig.sem.toFixed(2)} A; frames with an H-bond ${(s.occ * 100).toFixed(0)}%; MM-GBSA ${s.dG.mean.toFixed(1)} +/- ${s.dG.sem.toFixed(1)} kcal/mol`, `My conclusion: ${C.text}`, '', 'Next steps I selected:', ...T.decide.next.filter(n => next.has(n.id)).map(n => `- ${n.text}`), '', 'My justification:', text.value.trim(), '',

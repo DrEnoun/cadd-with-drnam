@@ -167,11 +167,11 @@ console.log('Network pharmacology data and maths OK');
 // ---------- Module 6: molecular dynamics
 import * as MD from '../js/modules/md/stats.js';
 const mdR = J('data/md/runs.json'), mdT = J('data/md/teaching.json'), mdq = J('data/md/quiz.json').questions;
-assert.ok(mdR.time.length === 1000 && Object.values(mdR.runs).every(r => ['protRmsd', 'ligRmsd', 'rg', 'dist', 'hbonds', 'dG'].every(k => r[k].length === 1000) && r.rmsf.length === mdR.resnum.length), 'trajectory lengths');
+assert.ok(mdR.time.length === 1000 && Object.keys(mdR.runs).length === 5 && Object.values(mdR.runs).every(r => ['protRmsd', 'ligRmsd', 'rg', 'dist', 'hbonds', 'dG'].every(k => r[k].length === 1000) && r.rmsf.length === mdR.resnum.length), 'trajectory lengths');
 assert.ok(mdR.rg0 > 20 && mdR.rg0 < 27 && mdR.hbondPartners.length >= 3 && mdR.rmsfExp.every(x => x > 0), 'real structure inputs');
-const mA = MD.summarise(mdR.runs.A, mdR.time), mB = MD.summarise(mdR.runs.B, mdR.time), mC = MD.summarise(mdR.runs.C, mdR.time);
+const mA = MD.summarise(mdR.runs.ref, mdR.time), mB = MD.summarise(mdR.runs.candA, mdR.time), mC = MD.summarise(mdR.runs.drift, mdR.time), mCB = MD.summarise(mdR.runs.candB, mdR.time), mCC = MD.summarise(mdR.runs.candC, mdR.time);
 assert.ok(MD.verdict(mA) === 'stable' && MD.verdict(mB) === 'left' && MD.verdict(mC) === 'drifting', `verdicts ${MD.verdict(mA)} ${MD.verdict(mB)} ${MD.verdict(mC)}`);
-assert.ok(mB.escape > 20 && mB.escape < 45 && mA.escape === null && mB.dG.mean > mA.dG.mean + 10, 'escape time and energy');
+assert.ok(mB.escape > 35 && mB.escape < 60 && mA.escape === null && mB.dG.mean > mA.dG.mean + 5, 'escape time and energy'); assert.ok(MD.verdict(mCB) === 'stable' && MD.verdict(mCC) === 'unclear', `candidate B ${MD.verdict(mCB)}, candidate C ${MD.verdict(mCC)}`);
 assert.ok(Math.abs(MD.slope([0, 1, 2, 3], [1, 3, 5, 7]) - 2) < 1e-12 && MD.blockStats([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]).sem === 0 && MD.occupancy([0, 1, 2, 0], 1) === .5);
 const mar = Array.from({ length: 1000 }, (_, i) => Math.sin(i / 60)); assert.ok(MD.blockStats(mar).sem > MD.blockStats(mar).naiveSem * 3, 'correlated frames: block error is larger than the naive one');
 // real MD engine: energy conservation with a small step, blow-up with a mbig one, thermostat reaches its target, momentum removed
@@ -182,3 +182,12 @@ let mpx = 0; for (let i = 0; i < mlj.N; i++) mpx += mlj.v[3 * i]; assert.ok(Math
 const mg = mlj.rdf(30); assert.ok(mg.length === 30 && mg.every(p => Number.isFinite(p[1])) && Math.max(...mg.map(p => p[1])) > 1.2);
 mdT.why.scenarios.forEach(s => assert.ok(mdT.why.approaches.some(a => a.id === s.answer))); assert.ok(mdT.workflow.steps.length === 9 && mdT.decide.claims.some(c => c.ok)); mdq.forEach(q => assert.ok(q.options.length >= 3 && q.options[q.answer] != null && q.why, q.id));
 console.log('Molecular dynamics data and maths OK');
+
+// ---------- the project story (case file)
+import fs from 'node:fs';
+const story = J('data/case.json'), regSrc = fs.readFileSync(new URL('../js/modules/registry.js', import.meta.url), 'utf8'), regIds = [...regSrc.matchAll(/id: '(\w+)'/g)].map(m => m[1]), order = regIds.filter(i => !/homology/.test(i));
+assert.deepEqual(story.chain.map(c => c.id), order.slice(0, 5), 'the story chain follows the registry order');
+story.standalone.forEach(s => assert.ok(regIds.includes(s.id))); assert.ok(regSrc.includes("id: 'homology'") && /standalone: true/.test(regSrc));
+const mdI = fs.readFileSync(new URL('../js/modules/md/index.js', import.meta.url), 'utf8'); assert.ok(/cand' \+ choice/.test(mdI), 'MD takes its candidate from the docking choice');
+assert.ok(J('data/adme/drugs.json').extras.map(e => e.name).join().includes('Compound B') && J('data/adme/drugs.json').extras.every(e => e.atoms.length && e.mock));
+console.log('Project story OK');

@@ -1,0 +1,15 @@
+{
+ "_about": "The running story that links the modules. Edit the wording here.",
+ "title": "Project COX-2",
+ "premise": "Your lab wants a better anti-inflammatory drug that blocks COX-2, the enzyme that makes the pain and swelling signals. Celecoxib is the known drug. Over five modules you follow one project from a big library of compounds to a candidate whose pose you have tested. Each module hands its result to the next one.",
+ "chain": [
+  { "id": "screening", "short": "Screening", "question": "Which compounds in a large library might block COX-2?", "gives": "a shortlist of compounds to look at closely" },
+  { "id": "docking", "short": "Docking", "question": "How does a candidate sit in the COX-2 pocket, and is the pose believable?", "gives": "a candidate with a pose you can defend" },
+  { "id": "adme", "short": "ADME", "question": "Could the candidate work as a medicine in the body?", "gives": "compounds that look absorbable and not too quickly destroyed" },
+  { "id": "network", "short": "Network", "question": "What else does the drug touch in the cell, and which pathways?", "gives": "targets and pathways worth testing in the lab" },
+  { "id": "md", "short": "Dynamics", "question": "Does the docked pose survive when everything moves?", "gives": "a verdict on the pose" }
+ ],
+ "standalone": [
+  { "id": "homology", "short": "Homology", "question": "What if the target has no structure at all?", "note": "This module stands alone. COX-2 already has a structure, so it teaches the method on a different protein. In a real project it would come before screening." }
+ ]
+}
