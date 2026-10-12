@@ -1,6 +1,7 @@
 // The project workbook: a guided lab notebook for a student's own CADD project, with automatic checks, a report and a supervisor view.
 import { h, fetchJson, download } from '../ui.js';
 import { store } from '../store.js';
+import { notice } from '../disclaimer.js';
 import { overview, stageChecks, completeness, report, computedValue, usedStages, empty } from './rules.js';
 
 const KEY = 'project';
@@ -40,6 +41,7 @@ export default function mount(host, ctx) {
     host.append(h('section', { class: 'glass stack' },
       h('p', { class: 'eyebrow' }, 'Your own project'), h('h1', {}, 'Project workbook'),
       h('p', { class: 'lead' }, 'Use this with your own target, compounds and software. The workbook is your lab notebook: it asks the questions a supervisor would ask, checks your numbers, points out common mistakes and builds your report. It never runs the calculations for you. You do those in your own software, then record and interpret them here.'),
+      notice('compact'),
       h('div', { class: 'card sticker-static' }, h('strong', {}, 'Private to this browser. '), 'Nothing is sent anywhere. Download your project file to keep it or to send it to your supervisor.'),
       h('div', { class: 'row' },
         h('button', { class: 'sticker', type: 'button', onclick: () => loadExample('good') }, 'Load a worked example'),

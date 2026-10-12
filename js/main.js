@@ -5,6 +5,7 @@ import { modules, byId } from './modules/registry.js';
 import { exportCsv } from './eval.js';
 import { describe, chainIds, downloadProject } from './case.js';
 import { startAnnotate } from './handbook/annotate.js';
+import { notice, aiBadge, disclaimerPage } from './disclaimer.js';
 
 const app = document.getElementById('app');
 let cleanup = null, stopAnnotate = null;
@@ -24,7 +25,8 @@ async function route() {
   if (m?.status === 'ready') {
     const mod = await m.load();
     cleanup = mod.default(app, { route: rest, module: m }) || null;
-  } else if (page === 'handbook') cleanup = (await import('./handbook/index.js')).default(app, { route: rest }) || null;
+  } else if (page === 'disclaimer') disclaimerPage(app);
+  else if (page === 'handbook') cleanup = (await import('./handbook/index.js')).default(app, { route: rest }) || null;
   else if (page === 'project') cleanup = (await import('./project/index.js')).default(app, { route: rest }) || null;
   else if (page === 'results') record();
   else if (page === 'about') about();
@@ -57,6 +59,7 @@ function home() {
   app.append(
     h('section', { class: 'hero hero--stack' },
       h('div', { class: 'hero__pic' }, h('div', { class: 'hero__plx' }, art('hero', 'Colourful illustration of a protein with a drug in its pocket, a laptop running a simulation, a funnel filtering candidate molecules, and a capsule with arrows to the liver, kidney, gut and blood.', { eager: true, sizes: '100vw', cls: 'hero__img', small: 1000, full: 2000, ratio: 711 / 2000 })), h('div', { class: 'hero__sparks', 'aria-hidden': 'true' }), h('div', { class: 'hero__sheen', 'aria-hidden': 'true' })),
+      aiBadge(),
       h('div', { class: 'hero__content' },
         h('div', { class: 'hero__badge' }, h('img', { src: 'brand/logos/chemistry-with-dr-nam-logo.jpg', alt: 'Chemistry with Dr. NAM' })),
         h('div', {},
@@ -64,10 +67,11 @@ function home() {
           h('h1', {}, 'CADD with Dr. NAM'),
           h('p', { class: 'lead' }, 'Learn the big picture of computer-aided drug design: why we do each step, how it works, and what the results mean. These are simulations, so they work with any software you use later.'),
           h('a', { class: 'btn-start', href: '#/screening', style: 'text-decoration:none' }, 'Start Module 1 →')))),
+    notice('full'),
     h('h2', { class: 'section-title' }, 'One project, five connected modules'),
     h('p', { class: 'lead' }, 'Follow one drug-discovery project from a big compound library to a tested candidate. Each module hands its result to the next. Do them in order for the full story.'),
     h('div', { class: 'mods' }, modules.filter(m => !m.standalone).map(m => h(m.status === 'ready' ? 'a' : 'div', { class: `mod sticker-static${m.status === 'ready' ? '' : ' is-soon'}`, href: m.status === 'ready' ? `#/${m.id}` : null },
-      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
+      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.aiImage === false ? '' : aiBadge(), m.status === 'ready' ? null : h('span', { class: 'mod__ribbon' }, 'Coming soon')),
       h('div', { class: 'mod__body' },
         h('span', { class: 'mod__n' }, `Module ${m.n}`),
         h('h3', {}, m.title), h('p', {}, m.blurb),
@@ -77,7 +81,7 @@ function home() {
     h('a', { class: 'card sticker-static', href: '#/handbook', style: 'display:block;text-decoration:none;margin-top:16px' }, h('span', { class: 'mod__n' }, 'Reference'), h('h3', { style: 'margin:4px 0' }, 'Handbook: glossary and appendices'), h('p', { style: 'margin:0 0 8px' }, 'Every abbreviation explained, plus rules of thumb, units, formulae, file formats, tools and a reading list.'), h('span', { class: 'go' }, 'Open the handbook →')),
     h('h2', { class: 'section-title' }, 'Stand-alone module'),
     h('div', { class: 'mods mods--single' }, modules.filter(m => m.standalone).map(m => h('a', { class: 'mod sticker-static', href: `#/${m.id}` },
-      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`)),
+      h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`), m.aiImage === false ? '' : aiBadge()),
       h('div', { class: 'mod__body' }, h('span', { class: 'mod__n' }, 'Stand-alone'), h('h3', {}, m.title), h('p', {}, m.blurb), h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →'))))),
     h('section', { class: 'glass stack' },
       h('h2', {}, 'How each module works'),
@@ -113,9 +117,9 @@ function about() {
     h('h1', {}, 'About'),
     h('p', {}, 'CADD with Dr. NAM is a set of interactive concept simulations for computer-aided drug design. It teaches the fundamental ideas and workflow behind each technique, whatever software students use later.'),
     h('p', {}, h('strong', {}, 'The protein and drug in the project are real: COX-2 with celecoxib (PDB entry 3LN1, from the RCSB Protein Data Bank). '), 'The docking poses, scores and compounds A, B and C in the docking module are mock data made for teaching. They are not real experiments and must not be used for real drug-design decisions.'),
-    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n ?? '★'}. ${m.title}${m.status === 'ready' ? '' : ' (coming)'}`)))),
+    h('div', { class: 'gallery' }, modules.map(m => h('figure', {}, art(m.art, `Illustration for ${m.title}`), h('figcaption', {}, `${m.n ?? '★'}. ${m.title}${m.aiImage === false ? ' (screenshot of the site)' : ' (AI-generated illustration)'}`)))),
     h('p', {}, 'Privacy: the site has no server and collects nothing. Your progress and answers are stored in your own browser, and you choose whether to download and submit them.'),
-    h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content. The module illustrations are artistic, not to scale, and were supplied by the author.')));
+    h('p', { class: 'muted' }, 'Created by Dr. NAM, Universiti Teknologi MARA. Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author’s direction; the author is responsible for the content. The illustrations are AI-generated, used for educational purposes, artistic, not to scale and not scientific data (see the disclaimer).'), h('p', {}, h('a', { href: '#/disclaimer' }, 'Disclaimer and disclosures'))));
 }
 
 addEventListener('hashchange', route);
