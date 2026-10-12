@@ -1,4 +1,4 @@
-// Module 4 — Homology Modelling: pre-test, 6 steps, post-test + survey (see ../flow.js).
+// Stand-alone module — Homology Modelling: pre-test, 6 steps, post-test + survey (see ../flow.js).
 import { fetchJson } from '../../ui.js';
 import mountModule from '../flow.js';
 
@@ -12,7 +12,7 @@ export const STEPS = [
 ];
 
 const def = {
-  id: 'homology', number: 4, title: 'Homology Modelling', art: 'homology', quiz: 'data/homology/quiz.json', steps: STEPS,
+  id: 'homology', number: null, title: 'Homology Modelling', art: 'homology', quiz: 'data/homology/quiz.json', steps: STEPS,
   blurb: 'No experimental structure? Build a model from a related protein, then check how far to trust it.',
   intro: 'Docking needs a 3D structure, but many proteins have none. Proteins that are related by evolution keep a very similar fold, so the known structure of a relative can be used as a template to build a model of the protein you care about. The quality of the model depends on the template you pick and on the sequence alignment. This module lets you do the whole job on real structures: choose a template, align, build, validate, and then find out how close your model really is.',
   outcomes: ['Explain when homology modelling is the right approach and how it differs from experimental structures and deep-learning predictions.', 'Choose a template using sequence identity, coverage, resolution and state, and not by name.', 'Make a sequence alignment, and explain why gaps belong in loops and why alignment errors become model errors.', 'Describe how a model is built from a template, and which parts are copied and which are guessed.', 'Use a Ramachandran plot, an environment check and the expected error to judge a model, and say what these checks cannot detect.', 'State what a model can and cannot be used for, for example fold analysis versus docking.'],

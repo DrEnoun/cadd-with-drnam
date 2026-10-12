@@ -9,7 +9,7 @@ export function render(host, api) {
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'An MD run produces millions of numbers. A few standard graphs turn them into answers: has the protein settled (RMSD), is the drug where it started (ligand RMSD, distance), which parts move (RMSF), does the protein keep its shape (radius of gyration) and are the key contacts kept (hydrogen bonds)?'),
     h('p', {}, `Three 100 ns runs of the celecoxib–COX-2 complex are shown (simulated for teaching). Look at each run and decide which starting pose you would trust. Move the “discard” slider to throw away the early frames.`));
-  let key = 'A', t0 = 20;
+  let key = keys[0], t0 = 20;
   const bar = h('div', { class: 'row' }, keys.map(k => h('button', { type: 'button', class: 'sticker', 'aria-pressed': String(k === key), 'data-k': k, onclick: () => { key = k; bar.querySelectorAll('button[data-k]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); draw(); api.log('view', k); } }, R[k].name)));
   const mk = label => h('canvas', { style: 'width:100%;border-radius:12px;background:#fff', role: 'img', 'aria-label': label });
   const c1 = mk('RMSD of the protein and the ligand'), c2 = mk('Ligand distance from the pocket'), c3 = mk('Radius of gyration'), c4 = mk('Hydrogen bonds'), c5 = mk('RMSF per residue');

@@ -1,6 +1,7 @@
 // Step 8 — Decide and justify, then produce a short docking report.
 import { h, feedback, download } from '../../ui.js';
 import { store } from '../../store.js';
+import { saveCase } from '../../case.js';
 import { analyseLigands, le } from './compounds.js';
 
 export function render(host, api) {
@@ -23,7 +24,7 @@ export function render(host, api) {
     api.log('choice', choice); api.log('evidence_right', evRight); api.log('evidence_wrong', evWrong.length); api.log('nextsteps_right', nxRight); api.log('nextsteps_wrong', nxWrong);
     store.setNote('docking', 'justification', text.value.trim());
     api.done({ choice, evidenceRight: evRight, evidenceWrong: evWrong.length, nextRight: nxRight, nextWrong: nxWrong, words: text.value.trim().split(/\s+/).length });
-    const l = ligands.find(x => x.id === choice);
+    const l = ligands.find(x => x.id === choice); saveCase('docking', { choice, name: `Compound ${choice}`, ok: choice === 'B' || choice === 'C', score: l.score });
     const msg = choice === 'B' ? feedback('ok', 'Strong choice', 'Compound B has the most complete evidence: the key hydrogen bonds of celecoxib, a pose like the reference, and a score that is not inflated by size.')
       : choice === 'C' ? feedback('ok', 'A defensible choice', 'Compound C is small and efficient, so it is a good starting point to grow, but its score and interactions are weaker. Say clearly that you chose it as a starting fragment.')
       : feedback('bad', 'Think again', 'Compound A has the best score but a poor pose (only 62% in the pocket), no sulfonamide hydrogen bonds to the key residues and low efficiency. Its score is inflated by its size.');

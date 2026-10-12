@@ -1,6 +1,7 @@
 // Step 6 — Decide: choose targets and pathways to test in the lab, say what the network proves, justify, download a report.
 import { h, feedback, download } from '../../ui.js';
 import { store } from '../../store.js';
+import { saveCase } from '../../case.js';
 import { st, sets, hubList } from './state.js';
 import { buildGraph, hubTable, enrich } from './stats.js';
 
@@ -24,7 +25,7 @@ export function render(host, api) {
     if (!claim.value) return out.replaceChildren(feedback('bad', 'Choose what the analysis shows.'));
     if (text.value.trim().length < 30) return out.replaceChildren(feedback('bad', 'Write a short justification (at least a sentence or two).'));
     const arr = [...picks], hubPicked = arr.filter(x => hb.includes(x)).length, control = arr.some(x => D.targets[x]?.evidence === 'known'), C = T.decide.claims.find(c => c.id === claim.value), right = T.decide.next.filter(n => n.right && next.has(n.id)).length, wrong = T.decide.next.filter(n => !n.right && next.has(n.id)).length;
-    api.log('picks', arr.join('+')); api.log('claim', claim.value); api.log('nextRight', right); api.log('nextWrong', wrong); store.setNote('network', 'justification', text.value.trim());
+    api.log('picks', arr.join('+')); api.log('claim', claim.value); api.log('nextRight', right); api.log('nextWrong', wrong); store.setNote('network', 'justification', text.value.trim()); saveCase('network', { picks: arr });
     api.done({ picks: arr.length, hubPicked, control: control ? 1 : 0, claimOk: C.ok ? 1 : 0, nextRight: right, nextWrong: wrong, words: text.value.trim().split(/\s+/).length });
     const body = ['NETWORK PHARMACOLOGY SUMMARY (teaching data set: celecoxib and inflammation; values are illustrative)', `Participant code: ${store.get('code') || '-'}`, '',
       `Thresholds: tool A probability >= ${st.minProb}${st.useB ? ' or listed by tool B' : ''}; disease relevance >= ${st.gc} or association >= ${st.dg}; interaction confidence >= ${st.conf}`,

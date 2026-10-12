@@ -2,12 +2,14 @@
 import { h, feedback } from '../../ui.js';
 import { labelBar } from '../../viewer3d.js';
 import { sets } from './state.js';
+import { caseOf } from '../../case.js';
 import { networkViewer, COL, css } from './scenes.js';
 
 export function render(host, api) {
   const D = api.data, T = D.teaching, { ct, dz, ov } = sets(D), ovS = new Set(ov), ctS = new Set(ct), dzS = new Set(dz);
   host.append(
     h('div', { class: 'why' }, h('strong', {}, 'Why do we do this? '), 'Docking asks how one drug fits one protein. But a drug travels through a cell full of proteins, and a disease involves many proteins at once. Network pharmacology draws the whole picture: which proteins does the drug touch, which proteins drive the disease, and where do they meet?'),
+    h('div', { class: 'card sticker-static' }, h('strong', {}, 'Where this fits in the project: '), caseOf('adme') ? `ADME favoured ${caseOf('adme').picks.join(', ')}. ` : '', 'So far we asked how one compound binds one protein, and whether it could be a medicine. Now we ask what else the drug touches in the cell. Target data in this exercise exist for celecoxib, the reference drug in every module, so the network is built for celecoxib. The method is the same for any compound.'),
     h('p', { class: 'lead' }, 'Our example is celecoxib, the COX-2 inhibitor from the other modules, and inflammation. Rotate the picture. The yellow node is the drug.'));
   const v = networkViewer(host, { height: 480, dist: 82 });
   if (v) {

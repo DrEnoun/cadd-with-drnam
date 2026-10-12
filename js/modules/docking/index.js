@@ -1,4 +1,4 @@
-// Module 1 — Molecular Docking. A guided mission: pre-test, 8 steps, post-test + survey (see ../flow.js).
+// Module 2 — Molecular Docking. A guided mission: pre-test, 8 steps, post-test + survey (see ../flow.js).
 import { fetchJson } from '../../ui.js';
 import mountModule from '../flow.js';
 
@@ -14,7 +14,7 @@ export const STEPS = [
 ];
 
 const def = {
-  id: 'docking', number: 1, title: 'Molecular Docking', art: 'docking', quiz: 'data/docking/quiz.json', steps: STEPS,
+  id: 'docking', number: 2, title: 'Molecular Docking', art: 'docking', quiz: 'data/docking/quiz.json', steps: STEPS,
   blurb: 'How a drug-like molecule fits a protein, and what to check afterwards.',
   intro: 'Docking is a computer experiment that predicts how a small molecule (a ligand) fits into a protein pocket and how strongly it may bind. Many students can run the software but are not sure why they do each step or what to look at afterwards. This module fixes that.',
   outcomes: ['Explain why we dock and what question docking answers.', 'Describe how a docking run works: search for poses, then score and rank them.', 'Prepare a structure, set the search box and explain what goes wrong if you do not.', 'Validate a protocol by redocking and judge the RMSD.', 'Analyse results: score, interactions, key residues and ligand efficiency, not the score alone.', 'Decide which compound to take forward and justify the choice.'],

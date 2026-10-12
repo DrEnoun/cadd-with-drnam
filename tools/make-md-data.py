@@ -37,13 +37,25 @@ def run_stable():
     rg = rg0 * (1 + .0006 * np.exp(-t / 15)) + ar1(n, .97, .06)
     dist = relax(t, .2, .7, 3.0) + ar1(n, .95, .15)
     return prot, ligr, rg, dist, 1.0
-def run_poor():
+def run_candB():  # the docking analogue with the complete set of interactions: stable, slightly looser than celecoxib
+    prot = relax(t, .4, 1.6, 6.5) + ar1(n, .985, .13)
+    ligr = relax(t, .3, 1.35, 3.5) + ar1(n, .95, .26) + 0.3 * (t > 60) * (t < 72)
+    rg = rg0 * (1 + .0006 * np.exp(-t / 15)) + ar1(n, .97, .06)
+    dist = relax(t, .2, .8, 3.0) + ar1(n, .95, .17)
+    return prot, ligr, rg, dist, 1.0
+def run_candA():  # the large compound with an inflated score: partly outside the pocket from the start, leaves at about 48 ns
     prot = relax(t, .4, 1.6, 7.0) + ar1(n, .985, .13)
-    esc = 1 / (1 + np.exp(-(t - 31) / 2.2))                                    # ligand leaves the pocket at about 31 ns
-    ligr = relax(t, .4, 1.8, 2.0) + esc * (6.5 + .09 * (t - 31).clip(0)) + ar1(n, .96, .3) * (1 + esc)
+    esc = 1 / (1 + np.exp(-(t - 48) / 3.0))
+    ligr = relax(t, .8, 3.0, 4.0) + esc * (5.5 + .07 * (t - 48).clip(0)) + ar1(n, .96, .34) * (1 + esc)
     rg = rg0 * (1 + .0007 * np.exp(-t / 15)) + ar1(n, .97, .06)
-    dist = relax(t, .3, 1.1, 2.0) + esc * (6.0 + .08 * (t - 31).clip(0)) + ar1(n, .95, .25) * (1 + esc)
+    dist = relax(t, .6, 2.4, 4.0) + esc * (5.0 + .07 * (t - 48).clip(0)) + ar1(n, .95, .3) * (1 + esc)
     return prot, ligr, rg, dist, 0.0
+def run_candC():  # the small fragment: stays near the pocket but moves around a lot (few contacts)
+    prot = relax(t, .4, 1.55, 6.0) + ar1(n, .985, .13)
+    ligr = relax(t, .5, 3.4, 4.0) + ar1(n, .96, .55)
+    rg = rg0 * (1 + .0006 * np.exp(-t / 15)) + ar1(n, .97, .06)
+    dist = relax(t, .4, 2.5, 4.0) + ar1(n, .95, .5)
+    return prot, ligr, rg, dist, .6
 def run_drift():  # protein not equilibrated: slow unfolding-like drift, ligand is carried along
     prot = .5 + .045 * t + ar1(n, .985, .18)
     ligr = relax(t, .3, 1.3, 3.0) + .018 * t + ar1(n, .95, .24)
@@ -70,14 +82,16 @@ def rmsf(scale, kind):
     return (base + wav + ends).clip(.2)
 runs = {}
 for key, fn, name, desc, occ, mm in [
-    ('A', run_stable, 'Run A: crystal pose of celecoxib', 'Docked starting pose close to the crystal pose.', [.9, .85, .8, .6, .45], -41),
-    ('B', run_poor, 'Run B: alternative docked pose', 'A second docking pose that scored almost as well.', [.8, .7, .55, .4, .3], -39),
-    ('C', run_drift, 'Run C: protein still drifting', 'Same pose as A, but the system was not equilibrated properly.', [.85, .8, .7, .55, .4], -36)]:
+    ('ref', run_stable, 'Reference: celecoxib, crystal pose', 'The known drug in its crystal pose. The control for the project.', [.9, .85, .8, .6, .45], -41),
+    ('candB', run_candB, 'Compound B', 'The celecoxib analogue with the complete set of key interactions.', [.9, .8, .75, .55, .4], -43),
+    ('candA', run_candA, 'Compound A', 'The large compound whose docking score was inflated by its size.', [.35, .15, .1, .05, .05], -45),
+    ('candC', run_candC, 'Compound C', 'The small fragment with few contacts.', [.55, .4, .3, .1, .1], -24),
+    ('drift', run_drift, 'Celecoxib, run not equilibrated', 'Same pose as the reference, but the system was not equilibrated properly.', [.85, .8, .7, .55, .4], -36)]:
     prot, ligr, rg, dist, bound = fn()
-    hbc = hbond_series(occ[:max(1, len(hbonds))] if hbonds else occ, 1.0)
-    if key == 'B': hbc = hbc * (1 / (1 + np.exp((t - 31) / 2.2)))
+    hbc = hbond_series(occ, 1.0)
+    if key == 'candA': hbc = hbc * (1 / (1 + np.exp((t - 48) / 3.0)))
     run = {'name': name, 'about': desc, 'protRmsd': np.round(prot, 3).tolist(), 'ligRmsd': np.round(ligr.clip(.1), 3).tolist(), 'rg': np.round(rg, 3).tolist(), 'dist': np.round(dist.clip(.1), 3).tolist(), 'hbonds': np.round(hbc).astype(int).tolist(),
-           'dG': np.round(mmgbsa(mm, dist), 2).tolist(), 'rmsf': np.round(rmsf(1.0 if key != 'C' else 1.35, key), 3).tolist()}
+           'dG': np.round(mmgbsa(mm, dist), 2).tolist(), 'rmsf': np.round(rmsf(1.0 if key != 'drift' else 1.35, key), 3).tolist()}
     runs[key] = run
 # per-residue decomposition for the pocket residues (illustrative)
 dec = {r['label']: round(float(-rng.uniform(.4, 4.8)), 1) for r in st['pocket']}
@@ -85,4 +99,4 @@ for r in ['ARG513', 'HIS90', 'GLN192', 'VAL523', 'LEU352', 'PHE518']: dec[r] = r
 out = {'_about': 'SIMULATED curves for Module 6. Not from a real molecular dynamics run. Real inputs: 3LN1 C-alpha radius of gyration, crystallographic B-factors (RMSF profile) and the geometry of possible hydrogen-bond partners. Everything else comes from a stochastic model in tools/make-md-data.py.',
        'time': np.round(t, 2).tolist(), 'dt': dt, 'length': T, 'rg0': round(rg0, 3), 'resnum': resnum, 'rmsfExp': np.round(rmsf_exp, 3).tolist(), 'hbondPartners': hbonds, 'runs': runs, 'pocketResidues': {r['label']: r['seq'] for r in st['pocket']}, 'decomposition': dec}
 json.dump(out, open('data/md/runs.json', 'w'), separators=(',', ':'))
-print(len(ca), round(rg0, 2), hbonds, {k: (round(float(np.mean(v['protRmsd'][500:])), 2), round(float(np.mean(v['ligRmsd'][500:])), 2)) for k, v in runs.items()})
+print({k: (round(float(np.mean(v['protRmsd'][500:])), 2), round(float(np.mean(v['ligRmsd'][500:])), 2)) for k, v in runs.items()})
