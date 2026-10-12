@@ -5,6 +5,8 @@ import { h, fetchJson, art } from '../ui.js';
 import { store } from '../store.js';
 import { consentScreen, runTest, runSurvey, exportCsv } from '../eval.js';
 import { storyStrip, nextModule, downloadProject } from '../case.js';
+import { notice, aiBadge } from '../disclaimer.js';
+import { byId } from './registry.js';
 
 /** The same 'back to the main page' button everywhere in a module. */
 const backBtn = (cls = '') => h('a', { class: `sticker back-main ${cls}`.trim(), href: '#/', 'aria-label': 'Back to the main page' }, '⌂ Back to main page');
@@ -62,7 +64,8 @@ export default function mountModule(def, host, ctx) {
   function intro() {
     const n = def.number, story = h('div');
     storyStrip(M).then(el => story.replaceWith(el)).catch(() => {});
-    host.append(h('div', { class: 'modbar' }, backBtn()), h('section', { class: 'banner' }, art(def.art, '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, n == null ? 'Stand-alone module' : `Module ${n} of 5`), h('h1', {}, def.title), h('p', { class: 'lead' }, def.blurb))),
+    host.append(h('div', { class: 'modbar' }, backBtn()), h('section', { class: 'banner' }, art(def.art, '', { eager: true, sizes: '100vw', cls: 'banner__bg' }), h('div', { class: 'banner__shade' }), byId(M)?.aiImage === false ? '' : aiBadge(), h('div', { class: 'banner__text' }, h('p', { class: 'eyebrow' }, n == null ? 'Stand-alone module' : `Module ${n} of 5`), h('h1', {}, def.title), h('p', { class: 'lead' }, def.blurb))),
+      notice('compact'),
       story,
       h('section', { class: 'glass stack', style: 'margin-top:20px' },
       h('p', { class: 'lead' }, def.intro),

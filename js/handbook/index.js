@@ -1,5 +1,6 @@
 // The handbook: glossary of terms and abbreviations, plus appendices (rules of thumb, units, formulae, file formats, tools, provenance, reading list).
 import { h, fetchJson, download } from '../ui.js';
+import { notice } from '../disclaimer.js';
 
 const CATS = { basics: 'Basics', structure: 'Structures', docking: 'Docking', screening: 'Screening', adme: 'ADME', network: 'Network', homology: 'Homology', md: 'Dynamics', stats: 'Statistics', files: 'Files', tools: 'Software', site: 'About the site' };
 const MODS = { screening: 'Virtual Screening', docking: 'Docking', adme: 'ADME', network: 'Network Pharmacology', md: 'Molecular Dynamics', homology: 'Homology Modelling', project: 'Project workbook' };
@@ -13,7 +14,7 @@ export default function mount(host, ctx) {
     h('a', { href: '#/handbook/glossary', class: cur === 'glossary' ? 'is-current' : '' }, 'Glossary'),
     B.appendices.map(a => h('a', { href: `#/handbook/${a.id}`, class: cur === a.id ? 'is-current' : '' }, `${a.letter}. ${a.title}`)),
     h('a', { href: '#/handbook/all', class: cur === 'all' ? 'is-current' : '' }, 'Print the whole handbook'));
-  const wrapUp = (cur, ...kids) => host.append(h('section', { class: 'glass stack gl-skip handbook' }, h('p', { class: 'eyebrow' }, 'Handbook'), ...kids), nav(cur));
+  const wrapUp = (cur, ...kids) => host.append(h('section', { class: 'glass stack gl-skip handbook' }, h('p', { class: 'eyebrow' }, 'Handbook'), ...kids, notice('compact')), nav(cur));
 
   // ---------------------------------------------------------------- glossary
   function glossaryBlock(printMode = false) {
