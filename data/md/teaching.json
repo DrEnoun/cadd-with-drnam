@@ -1,0 +1,161 @@
+{
+ "_about": "Teaching text for Module 6 (molecular dynamics). Check the science before use with students.",
+ "why": {
+  "approaches": [
+   {
+    "id": "dock",
+    "text": "Docking or virtual screening"
+   },
+   {
+    "id": "md",
+    "text": "Molecular dynamics simulation"
+   },
+   {
+    "id": "hm",
+    "text": "Homology modelling"
+   },
+   {
+    "id": "exp",
+    "text": "A binding assay in the laboratory"
+   }
+  ],
+  "scenarios": [
+   {
+    "id": "s1",
+    "text": "You have a docked pose of a drug and want to know whether it stays in the pocket over 100 ns.",
+    "answer": "md",
+    "why": "MD follows the atoms over time. Docking gives one frozen pose and cannot say whether it survives motion."
+   },
+   {
+    "id": "s2",
+    "text": "You need a quick ranking of 50,000 compounds against one pocket.",
+    "answer": "dock",
+    "why": "Docking is fast enough for large libraries. MD costs hours or days per compound."
+   },
+   {
+    "id": "s3",
+    "text": "No structure of your protein exists, but a relative with 55% identity has one.",
+    "answer": "hm",
+    "why": "Build a model from the relative first. MD needs a starting structure."
+   },
+   {
+    "id": "s4",
+    "text": "You need the real binding strength of your best hit for a paper.",
+    "answer": "exp",
+    "why": "Computer estimates are rough. A binding assay gives the measured value."
+   }
+  ]
+ },
+ "workflow": {
+  "steps": [
+   {
+    "id": "w1",
+    "short": "Prepare the complex",
+    "text": "Prepare the protein and ligand (add hydrogens, choose protonation states, fix missing atoms)",
+    "why": "The simulation needs every atom, and the charges of residues such as histidine decide the forces."
+   },
+   {
+    "id": "w2",
+    "short": "Force field",
+    "text": "Choose a force field and make parameters for the ligand",
+    "why": "The force field defines every force. A drug is usually not in the standard library, so it needs its own parameters."
+   },
+   {
+    "id": "w3",
+    "short": "Solvate",
+    "text": "Place the complex in a box and fill it with water",
+    "why": "Proteins work in water. Without it the structure collapses or behaves unrealistically."
+   },
+   {
+    "id": "w4",
+    "short": "Add ions",
+    "text": "Add ions to neutralise the charge (and reach a salt concentration)",
+    "why": "A box with net charge gives wrong electrostatics. Ions are placed after the water so that they replace water molecules."
+   },
+   {
+    "id": "w5",
+    "short": "Minimise",
+    "text": "Energy minimisation",
+    "why": "Placing atoms creates clashes and huge forces. Minimising removes them before any motion starts, so the run does not explode."
+   },
+   {
+    "id": "w6",
+    "short": "NVT",
+    "text": "Equilibrate at constant volume and temperature (NVT)",
+    "why": "The system is heated slowly to the target temperature, for example 300 K, with the volume fixed."
+   },
+   {
+    "id": "w7",
+    "short": "NPT",
+    "text": "Equilibrate at constant pressure and temperature (NPT)",
+    "why": "The box size adjusts so that the density is right, for example at 1 bar."
+   },
+   {
+    "id": "w8",
+    "short": "Production",
+    "text": "Production run",
+    "why": "This is the part you analyse, for example 100 ns. It starts only after the system is equilibrated."
+   },
+   {
+    "id": "w9",
+    "short": "Analyse",
+    "text": "Analyse the trajectory (RMSD, RMSF, hydrogen bonds, energies)",
+    "why": "The raw trajectory is millions of numbers. The standard graphs and tables turn them into evidence."
+   }
+  ]
+ },
+ "decide": {
+  "claims": [
+   {
+    "id": "c1",
+    "text": "In this simulation, the pose stayed (or did not stay) in the pocket for 100 ns. This is one run and needs repeats and experimental testing.",
+    "ok": true,
+    "why": "This says what the data show and how far they can be trusted. One run starts from one set of velocities."
+   },
+   {
+    "id": "c2",
+    "text": "The simulation proves the drug binds COX-2 with the MM-GBSA energy shown.",
+    "ok": false,
+    "why": "MM-GBSA is a rough end-point estimate that ranks well but is not an accurate binding energy, and a simulation cannot prove binding."
+   },
+   {
+    "id": "c3",
+    "text": "A stable RMSD under 2 \u00c5 means the drug is a good drug.",
+    "ok": false,
+    "why": "Stability of a pose says nothing about absorption, safety or potency. The 2 \u00c5 figure is a guide, not a rule."
+   }
+  ],
+  "next": [
+   {
+    "id": "n1",
+    "text": "Repeat the simulation with different starting velocities, to see whether the result is reproducible.",
+    "right": true
+   },
+   {
+    "id": "n2",
+    "text": "Run for longer or from other docked poses to check that the conclusion holds.",
+    "right": true
+   },
+   {
+    "id": "n3",
+    "text": "Test the prediction in the laboratory, for example with a binding assay or a mutation of a key residue.",
+    "right": true
+   },
+   {
+    "id": "n4",
+    "text": "Check the key hydrogen bonds and contacts against the crystal structure and the literature.",
+    "right": true
+   },
+   {
+    "id": "n5",
+    "text": "Report the MM-GBSA value as the true binding energy.",
+    "right": false
+   },
+   {
+    "id": "n6",
+    "text": "Stop here: a single stable 100 ns run proves the mechanism.",
+    "right": false
+   }
+  ]
+ }
+}

@@ -1,0 +1,125 @@
+{
+ "_about": "Pre/post concept test for Module 6 (molecular dynamics). 'answer' is the index of the correct option. Check the science before using with students.",
+ "questions": [
+  {
+   "id": "q1",
+   "q": "Why is MD used after docking?",
+   "options": [
+    "To dock more compounds faster",
+    "To test whether the docked pose stays stable when atoms move",
+    "To find the structure of the protein",
+    "To measure binding in the lab"
+   ],
+   "answer": 1,
+   "why": "Docking gives one rigid snapshot. MD adds motion over time."
+  },
+  {
+   "id": "q2",
+   "q": "In an MD simulation the forces on each atom come from:",
+   "options": [
+    "A force field",
+    "The docking score",
+    "The sequence alignment",
+    "The crystal B-factors"
+   ],
+   "answer": 0,
+   "why": "A force field is a set of equations and parameters for bonds, angles and non-bonded interactions."
+  },
+  {
+   "id": "q3",
+   "q": "What happens if the time step is too large?",
+   "options": [
+    "Nothing: it only runs faster",
+    "The simulation becomes unstable and energy is not conserved",
+    "The protein folds faster",
+    "The temperature falls"
+   ],
+   "answer": 1,
+   "why": "Large steps miss the fastest motions, so errors build up and the simulation can explode."
+  },
+  {
+   "id": "q4",
+   "q": "Why is a time step of about 2 fs used for proteins?",
+   "options": [
+    "Computers cannot count faster",
+    "The fastest motions (bond vibrations) take about 10 fs",
+    "Proteins move only 2 fs at a time",
+    "It is the length of a nanosecond"
+   ],
+   "answer": 1,
+   "why": "The step must be much shorter than the fastest vibration."
+  },
+  {
+   "id": "q5",
+   "q": "Why are the first nanoseconds of a production run often discarded?",
+   "options": [
+    "They are always wrong",
+    "The system is still settling from its artificial starting state",
+    "The computer is slow at first",
+    "Only the end matters"
+   ],
+   "answer": 1,
+   "why": "Averages from before equilibration are biased by the starting conditions."
+  },
+  {
+   "id": "q6",
+   "q": "What is the correct order?",
+   "options": [
+    "Production run, minimise, then solvate",
+    "Minimise, then solvate and add ions",
+    "Solvate and add ions, minimise, equilibrate, then production run",
+    "Equilibrate, solvate, then add ions"
+   ],
+   "answer": 2,
+   "why": "Each step prepares the system for the next one. Minimisation removes clashes before motion starts."
+  },
+  {
+   "id": "q7",
+   "q": "What does a protein backbone RMSD that keeps rising during the whole run suggest?",
+   "options": [
+    "The protein is perfectly stable",
+    "The system has not reached a stable state",
+    "The run is long enough",
+    "The ligand is very strong"
+   ],
+   "answer": 1,
+   "why": "A plateau means the structure fluctuates around a stable form. A steady climb means it is still changing."
+  },
+  {
+   "id": "q8",
+   "q": "What does RMSF show?",
+   "options": [
+    "The energy of each residue",
+    "How much each residue fluctuates around its average position",
+    "The distance between two residues",
+    "The temperature of the run"
+   ],
+   "answer": 1,
+   "why": "RMSF is per residue. Loops and ends usually move more than helices and strands."
+  },
+  {
+   "id": "q9",
+   "q": "The ligand RMSD rises to 8 \u00c5 and the drug is far from the pocket. What is the best conclusion?",
+   "options": [
+    "The pose is very stable",
+    "The starting pose was not stable in this simulation",
+    "The protein unfolded",
+    "The force field is wrong"
+   ],
+   "answer": 1,
+   "why": "The drug left the pocket in this run. You would check repeats and the pose before drawing strong conclusions."
+  },
+  {
+   "id": "q10",
+   "q": "What does an MM-GBSA estimate give?",
+   "options": [
+    "The exact binding affinity",
+    "A rough end-point estimate useful for ranking, not an accurate binding energy",
+    "The half-life of the drug",
+    "The solubility"
+   ],
+   "answer": 1,
+   "why": "MM-GBSA ignores some terms (for example entropy is often missing) and carries large errors."
+  }
+ ]
+}
