@@ -191,3 +191,45 @@ story.standalone.forEach(s => assert.ok(regIds.includes(s.id))); assert.ok(regSr
 const mdI = fs.readFileSync(new URL('../js/modules/md/index.js', import.meta.url), 'utf8'); assert.ok(/cand' \+ choice/.test(mdI), 'MD takes its candidate from the docking choice');
 assert.ok(J('data/adme/drugs.json').extras.map(e => e.name).join().includes('Compound B') && J('data/adme/drugs.json').extras.every(e => e.atoms.length && e.mock));
 console.log('Project story OK');
+
+// ---------- project workbook
+import * as WB from '../js/project/rules.js';
+const wbSpec = J('data/project/workbook.json'), wbEx = J('data/project/example.json'), ids = new Set();
+for (const s of wbSpec.stages) { assert.ok(!ids.has(s.id) && s.why && s.mistakes.length, s.id); ids.add(s.id); const fids = new Set(); for (const f of s.fields) { assert.ok(!fids.has(f.id) && f.label && ['text', 'textarea', 'number', 'select', 'checks', 'table'].includes(f.type), `${s.id}.${f.id}`); fids.add(f.id); if (f.type === 'select' || f.type === 'checks') assert.ok(f.options.length >= 2); if (f.type === 'table') f.columns.forEach(c => assert.ok(!c.computed || WB.COMPUTED[c.computed], c.id)); } }
+assert.ok(WB.COMPUTED.ligandEfficiency({ score: -10.4, ha: 26 }) === 0.4 && WB.COMPUTED.ro5({ mw: 600, logp: 6, hbd: 1, hba: 3 }) === 2 && WB.COMPUTED.veber({ tpsa: 150, rotb: 3 }) === 'fails' && WB.COMPUTED.veber({}) === null);
+const wbGood = WB.overview(wbSpec, wbEx.good), wbBad = WB.overview(wbSpec, wbEx.flawed);
+assert.ok(wbGood.ready && wbGood.blocks === 0 && wbGood.warns === 0, 'the good example has no problems'); assert.ok(!wbBad.ready && wbBad.blocks >= 8 && wbBad.warns >= 15, `the flawed example is caught: ${wbBad.blocks} serious, ${wbBad.warns} warnings`);
+const sev = (stage, data) => WB.stageChecks(stage, data).map(c => c.sev + ':' + c.text.slice(0, 20));
+assert.ok(WB.stageChecks('docking', { docking: {} }).some(c => c.sev === 'block' && /redocking/i.test(c.text)), 'no redocking is serious'); assert.ok(WB.stageChecks('docking', { docking: { redockRmsd: 3.1 } }).some(c => c.sev === 'warn' && /2 Å/.test(c.text)) && WB.stageChecks('docking', { docking: { redockRmsd: 1.2 } }).some(c => c.sev === 'ok'));
+assert.ok(WB.stageChecks('screening', { screening: { funnel: [{ step: 'a', n: 100 }, { step: 'b', n: 200 }] } }).some(c => c.sev === 'block'), 'a filter cannot add compounds');
+assert.ok(WB.stageChecks('network', { network: { nCompound: 100, nDisease: 200, nOverlap: 150 } }).some(c => c.sev === 'block') && WB.stageChecks('network', { network: { selection: 'topn' } }).some(c => /top N/.test(c.text)));
+assert.ok(WB.stageChecks('md', { md: { dt: 4, constraints: 'no' } }).some(c => c.sev === 'block') && WB.stageChecks('md', { md: { replicas: 1 } }).some(c => /one replica/i.test(c.text)) && WB.stageChecks('md', { md: { left: 'yes', dG: -40 } }).some(c => c.sev === 'block'));
+assert.ok(WB.stageChecks('target', { target: { source: 'hm', identity: 25 } }).some(c => c.sev === 'block') && WB.stageChecks('target', { target: { source: 'af', plddt: 55 } }).some(c => c.sev === 'block') && WB.stageChecks('conclude', { conclude: { claim: 'proof' } }).some(c => c.sev === 'block'));
+assert.ok(WB.stageChecks('adme', { adme: { route: 'oral', table: [{ name: 'X', gi: 'low' }] } }).some(c => c.sev === 'block'));
+const cp = WB.completeness(wbSpec.stages[0], { setup: { title: 'x' } }); assert.ok(cp.total === 6 && cp.done === 1 && cp.missing.length === 5);
+assert.ok(WB.usedStages(wbSpec, { setup: { stages: ['screening'] } }).join() === 'setup,screening,conclude' && WB.usedStages(wbSpec, { setup: {} }).length === 8);
+const rep = WB.report(wbSpec, wbEx.good, { code: 'T', date: '2026-01-01' }); assert.ok(rep.startsWith('# EXAMPLE') && /\| Compound B \|/.test(rep) && /ligand efficiency/i.test(rep) && /all required fields are filled/.test(rep));
+assert.ok(WB.report(wbSpec, wbEx.flawed, {}).includes('[serious]'));
+console.log('Project workbook OK');
+
+// ---------- handbook: glossary and appendices
+import { buildMatcher, findFirst } from '../js/handbook/annotate.js';
+const gl = J('data/glossary.json').entries, hbk = J('data/handbook.json').appendices, CATS = ['basics', 'structure', 'docking', 'screening', 'adme', 'network', 'homology', 'md', 'stats', 'files', 'tools', 'site'], gids = new Set(), abbrs = new Map();
+for (const e of gl) { assert.ok(e.id && !gids.has(e.id) && e.term && e.def.length > 20 && CATS.includes(e.cat) && Array.isArray(e.abbr) && Array.isArray(e.modules), e.id); gids.add(e.id); for (const a of e.abbr) { assert.ok(!abbrs.has(a), `abbreviation ${a} is in two entries`); abbrs.set(a, e.id); } }
+const must = ['CADD', 'COX-2', 'NSAID', 'SAR', 'IC50', 'Kd', 'Ki', 'PDB', 'RCSB', 'UniProt', 'NMR', 'RMSD', 'LE', 'Ro5', 'PAINS', 'EF', 'ROC', 'AUC', 'ADME', 'GI', 'BBB', 'BOILED-Egg', 'cLogP', 'TPSA', 'HBD', 'HBA', 'MW', 'RotB', 'logS', 'ESOL', 'pKa', 'pH', 'CYP', 'NAPQI', 'PAMPA', 'Cmax', 'Tmax', 'PPI', 'STRING', 'GO', 'KEGG', 'FDR', 'PTGS2', 'pLDDT', 'AlphaFold', 'MODELLER', 'SWISS-MODEL', 'BLOSUM62', 'AMPA', 'GluA2', 'GluA3', 'NTD', 'MD', 'RMSF', 'Rg', 'MM-GBSA', 'MM-PBSA', 'TIP3P', 'NVT', 'NPT', 'SMILES', 'SDF', 'SUS', 'CSV', 'JSON', 'GROMACS', 'AutoDock', 'RDKit', 'SwissADME', 'pkCSM', 'SwissTargetPrediction', 'PharmMapper', 'GeneCards', 'DisGeNET', 'CHARMM36', 'LINCS', 'SHAKE', 'NAM-NPeasy', 'CA2', 'X-ray', 'DNA', 'ELISA', 'NaCl', 'His90', 'Arg513', 'CH3', 'Verify3D', 'ProSA', 'UiTM', 'EF10', 'ΔG', 'H-bond'];
+must.forEach(a => assert.ok(abbrs.has(a), `glossary is missing ${a}`));
+// every abbreviation that appears in the module and workbook text should be defined: scan their quoted strings and data files
+import fsx from 'node:fs'; import pathx from 'node:path';
+const walkJs = d => fsx.readdirSync(d, { withFileTypes: true }).flatMap(x => x.isDirectory() ? walkJs(pathx.join(d, x.name)) : x.name.endsWith('.js') ? [pathx.join(d, x.name)] : []);
+const texts = []; for (const f of [...walkJs('js/modules'), 'js/main.js', 'js/case.js', 'js/project/index.js']) for (const m of fsx.readFileSync(f, 'utf8').matchAll(/'((?:[^'\\\n]|\\.){12,})'|`((?:[^`\\]|\\.){12,})`/g)) { const s = m[1] || m[2]; if (/\s/.test(s)) texts.push(s); }
+const jsonText = o => typeof o === 'string' ? [o] : Array.isArray(o) ? o.flatMap(jsonText) : o && typeof o === 'object' ? Object.entries(o).filter(([k]) => !k.startsWith('_')).flatMap(([, v]) => jsonText(v)) : [];
+for (const f of ['data/docking/mock.json', 'data/screening/teaching.json', 'data/adme/teaching.json', 'data/homology/teaching.json', 'data/network/teaching.json', 'data/md/teaching.json', 'data/case.json', 'data/project/workbook.json', 'data/docking/quiz.json', 'data/screening/quiz.json', 'data/adme/quiz.json', 'data/homology/quiz.json', 'data/network/quiz.json', 'data/md/quiz.json']) texts.push(...jsonText(J(f)).filter(s => /\s/.test(s)));
+const IGNORE = new Set(['COL', 'MEM', 'STEPS', 'SUMMARY', 'innerHTML', 'MAXPICK', 'PH', 'II', 'COLORS', 'KEYCOL', 'toISOString', 'GROUP', 'SITES', 'PI', 'CL', 'EM', 'RT', 'AX', 'SPAN', 'PROPS', 'SIMLIM', 'CHOICES', 'NOT', 'POLAR', 'CF', 'COMPUTED', 'CHECKS', 'SEV', 'PERCEPTION', 'CSS', 'IntersectionObserver', 'VIRTUAL', 'SCREENING', 'THREE', 'FLAG', 'POS', 'EGG', 'pHb', 'pHa', 'ILVM', 'FYW', 'KRH', 'DE', 'NQ', 'ST', 'AG', 'HOMOLOGY', 'MODELLING', 'NETWORK', 'PHARMACOLOGY', 'MOLECULAR', 'DYNAMICS', 'VERDICT', 'WebGL', 'bestLE', 'CEL', 'HEM', 'NAG', 'BOG', 'REMARK', 'CH', 'DOCKING', 'GluA', 'MY', 'PROJECT', 'FILE', 'SVD', 'TNF', 'NaN', 'OR', 'GROMACS-style', 'AMPA-type', 'Verify3D', 'MM-GBSA/MM-PBSA', 'Leu352', 'Val349', 'Val523', 'Phe518', 'Gln192', 'Arg120', 'RCSB']);
+const tok = /(?<![A-Za-z0-9_-])([A-Z][A-Za-z0-9]*[A-Z0-9][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*|[pc][A-Z][A-Za-z]+|[a-z]+[A-Z]{2,}\w*)(?![A-Za-z0-9_])/g, missing = new Set();
+for (const s of texts) for (const m of s.matchAll(tok)) { const w = m[1]; if (w.length < 2 || /^[A-Z][a-z]+$/.test(w) || abbrs.has(w) || IGNORE.has(w) || /^[A-Z]{2,}$/.test(w) && w.length > 7) continue; missing.add(w); }
+assert.deepEqual([...missing].sort(), [], `abbreviations in the modules that the glossary does not define: ${[...missing].join(', ')}`);
+// matcher: whole words only, first occurrence only, longest first
+const mt = buildMatcher(gl), hits = findFirst('The RMSD of the MM-GBSA run: RMSD again; ADMET is not ADME', mt, new Set());
+assert.deepEqual(hits.map(x => x.text), ['RMSD', 'MM-GBSA', 'ADME'], 'first occurrence of each, whole words only'); assert.equal(findFirst('xRMSD RMSDs', mt, new Set()).length, 0); assert.equal(findFirst('RMSD', mt, new Set(['rmsd'])).length, 0, 'an entry already shown on the page is skipped');
+for (const a of hbk) { assert.ok(a.id && a.letter && a.title && ['table', 'defs', 'list', 'refs'].includes(a.type), a.id); if (a.type === 'table') a.rows.forEach(r => assert.equal(r.length, a.columns.length, a.id)); }
+console.log('Handbook OK');

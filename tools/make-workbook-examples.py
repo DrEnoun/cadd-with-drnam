@@ -1,0 +1,35 @@
+"""Builds data/project/example.json: two worked examples of a filled workbook. ALL NUMBERS ARE MADE UP for teaching (celecoxib / COX-2 story).
+'good' is a careful project. 'flawed' contains typical mistakes so that the automatic checks have something to find. Run: python3 tools/make-workbook-examples.py"""
+import json
+R = lambda **k: k
+good = {
+ 'setup': dict(title='EXAMPLE: Could a celecoxib analogue be a better COX-2 inhibitor?', student='', supervisor='', question='Could a chlorinated analogue of celecoxib bind COX-2 as well as celecoxib and still look like an oral medicine, so that it is worth testing in the lab?', disease='Inflammation and pain',
+   hypothesis='I expect the analogue to keep the key hydrogen bonds of celecoxib and to stay in the pocket in a simulation, because only the tolyl methyl is changed. I expect its ADME profile to be similar.', compounds='Celecoxib (reference); Compound B (chloro analogue of celecoxib); Compound C (small fragment). Structures from the teaching data set.',
+   software='AutoDock Vina 1.2.5; SwissADME (web); SwissTargetPrediction, PharmMapper, STRING; GROMACS 2024 (example)', stages=['target', 'screening', 'docking', 'adme', 'network', 'md'], skipWhy=''),
+ 'target': dict(source='exp', targetName='COX-2 (cyclooxygenase-2)', pdb='3LN1', resolution=2.4, ligandIn='Celecoxib', plddt='', identity='', rama='', prep=['chain', 'waters', 'hydrogens', 'missing', 'cofactors', 'altloc'], notes='Used chain A. Kept the haem. Removed waters except none near the pocket. Protonation at pH 7.4.'),
+ 'screening': dict(purpose='hits', library='Teaching library of 45 known drugs (Module 1)', method='both', reference='Celecoxib', funnel=[R(step='Start (whole library)', n=45, rule='45 drugs'), R(step='After property filters', n=38, rule='Rule of five, Veber'), R(step='After alerts (PAINS) and duplicates', n=36, rule='No PAINS'), R(step='After the screening score', n=15, rule='Consensus of shape and docking score'), R(step='Hits sent forward', n=5, rule='Diverse, inspected')],
+   validated='yes', auc=0.86, ef=2.5, diversity=['div', 'pains', 'visual'], notes='Known COX inhibitors ranked in the top third.'),
+ 'docking': dict(program='AutoDock Vina 1.2.5, exhaustiveness 16', redockLigand='celecoxib from 3LN1', redockRmsd=0.9, boxCenter='0, 0, 0 (centred on celecoxib)', boxSize='22, 22, 22', boxChecks=['cover', 'notHuge', 'center'], referenceName='Celecoxib',
+   results=[R(name='Celecoxib', score=-9.6, ha=26, hbonds='HIS90, GLN192, ARG513', key=3, inside='yes', rmsd=0), R(name='Compound B', score=-10.1, ha=26, hbonds='HIS90, GLN192, ARG513', key=3, inside='yes', rmsd=1.2), R(name='Compound C', score=-7.0, ha=15, hbonds='GLN192', key=1, inside='yes', rmsd=1.6)],
+   evidence=['score', 'hbonds', 'key', 'le', 'pose', 'visual'], choice='Compound B: its score is as good as celecoxib, it makes the same three key hydrogen bonds, its pose overlays the reference at 1.2 Å and its ligand efficiency is similar.'),
+ 'adme': dict(tools='SwissADME', route='oral', table=[R(name='Celecoxib', mw=381, logp=3.5, tpsa=78, hbd=1, hba=3, rotb=3, gi='high', pains=0), R(name='Compound B', mw=402, logp=3.9, tpsa=78, hbd=1, hba=3, rotb=3, gi='high', pains=0)], considered=['ph', 'met', 'clear'],
+   decision='Continue with Compound B. Its profile is close to celecoxib. I would measure solubility and metabolic stability in liver microsomes, because the chlorine may block methyl oxidation.'),
+ 'network': dict(targetTools='SwissTargetPrediction, PharmMapper', diseaseDbs='GeneCards, DisGeNET', selection='threshold', nCompound=160, nDisease=430, nOverlap=38, stringConf=0.7, hubs='AKT1, PTGS2, STAT3, MAPK14, NFKB1', hubMethod='multi', background='genome',
+   pathways=[R(name='TNF signalling pathway', genes=5, q=0.0004), R(name='IL-17 signalling pathway', genes=4, q=0.0009), R(name='AGE-RAGE signalling pathway', genes=4, q=0.003)], plan='Test whether Compound B changes PTGS2 and AKT1 pathway activity in cells, with celecoxib as the positive control.'),
+ 'md': dict(program='GROMACS 2024, CHARMM36m', water='TIP3P, 0.15 M NaCl, cubic box 1.0 nm', temperature=300, pressure=1, dt=2, constraints='yes', prep=['min', 'nvt', 'npt'], length=100, replicas=3, discard=20, plateau='yes', ligRmsd=1.4, left='no', hbOcc=82, dG=-41.2, dGerr=2.1,
+   notes='Protein RMSD settled at about 1.5 Å after 10 ns. Ligand RMSD stayed near 1.4 Å. The hydrogen bond to HIS90 was present in most frames in all three replicas. RMSF was highest in the loops.'),
+ 'conclude': dict(claim='hyp', summary='Compound B behaves like celecoxib in docking, ADME and three 100 ns simulations, and its target network overlaps with inflammation pathways. It is a candidate worth testing.',
+   limits='1. The structure is a crystal structure of celecoxib, so the pocket may be biased towards it. 2. Docking scores are approximate and MM-GBSA is a rough ranking. 3. Three 100 ns runs cannot show slow events. 4. The target network comes from predictions.', nextSteps=['assay', 'mut', 'repeat'],
+   reflection='The redocking test and the equilibration steps taught me the most. Next time I would run a longer simulation and add a second docking program to check the scores.'),
+}
+flawed = json.loads(json.dumps(good))
+flawed['setup'].update(title='EXAMPLE WITH PROBLEMS: docking a compound to a model', question='Does it bind?', hypothesis='', stages=['target', 'screening', 'docking', 'adme', 'network', 'md'], skipWhy='')
+flawed['target'].update(source='af', resolution='', plddt=62, ligandIn='', prep=['chain'])
+flawed['screening'].update(reference='', validated='no', auc='', ef='', diversity=[], funnel=[R(step='Start (whole library)', n=1000, rule=''), R(step='After property filters', n=1500, rule=''), R(step='After the screening score', n=300, rule='top 300')])
+flawed['docking'].update(redockRmsd='', boxChecks=[], referenceName='', evidence=['score'], choice='Compound A has the best score.',
+   results=[R(name='Compound A', score=-10.8, ha=38, hbonds='', key=0, inside='partly', rmsd=5.6), R(name='Compound B', score=-10.1, ha=26, hbonds='HIS90, GLN192, ARG513', key=3, inside='yes', rmsd=1.2)])
+flawed['adme'].update(table=[R(name='Compound A', mw=528, logp=5.6, tpsa=165, hbd=3, hba=9, rotb=12, gi='low', pains=1)], considered=[])
+flawed['network'].update(targetTools='SwissTargetPrediction', selection='topn', nOverlap=500, stringConf=0.15, hubMethod='degree', background='unsure', pathways=[R(name='MAPK signalling pathway', genes=3, q=0.2), R(name='PI3K-Akt signalling pathway', genes=4, q='')])
+flawed['md'].update(dt=4, constraints='no', prep=[], length=5, replicas=1, discard=0, plateau='no', ligRmsd=4.2, left='yes', hbOcc=12, dG=-52.0, dGerr='', notes='The ligand moved away but the energy is very good.')
+flawed['conclude'].update(claim='proof', limits='The software may be wrong.', nextSteps=['md'], reflection='It was fine.')
+json.dump(dict(_about='Two worked examples of the project workbook. All numbers are made up for teaching.', good=good, flawed=flawed), open('data/project/example.json', 'w'), indent=1)

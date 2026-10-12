@@ -1,0 +1,1123 @@
+{
+ "_about": "Spec of the hands-on project workbook. Edit via tools/make-workbook-spec.py.",
+ "stages": [
+  {
+   "id": "setup",
+   "title": "Project set-up",
+   "module": null,
+   "why": "A project that cannot say what question it answers cannot say when it has finished. Write the question and your expectation first; everything later is judged against them.",
+   "mistakes": [
+    "Starting the software before the question is written down.",
+    "A question that is really a method (\"I will dock compounds\").",
+    "No expectation, so any result looks like a success."
+   ],
+   "fields": [
+    {
+     "id": "title",
+     "label": "Project title",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "student",
+     "label": "Your name or code (optional)",
+     "type": "text",
+     "hint": "Leave it blank if you prefer. This file stays in your browser until you download it."
+    },
+    {
+     "id": "supervisor",
+     "label": "Supervisor (optional)",
+     "type": "text"
+    },
+    {
+     "id": "question",
+     "label": "What question will this project answer?",
+     "type": "textarea",
+     "required": true,
+     "hint": "One or two sentences, for example: \"Could compound X block enzyme Y, and is it worth testing in the lab?\""
+    },
+    {
+     "id": "disease",
+     "label": "Disease or condition",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "hypothesis",
+     "label": "What do you expect to find, and why?",
+     "type": "textarea",
+     "required": true
+    },
+    {
+     "id": "compounds",
+     "label": "Compound(s) of interest (names, source, SMILES if you have them)",
+     "type": "textarea",
+     "required": true
+    },
+    {
+     "id": "software",
+     "label": "Software and versions you will use",
+     "type": "textarea",
+     "required": true,
+     "hint": "For example: AutoDock Vina 1.2.5, SwissADME (web), GROMACS 2024."
+    },
+    {
+     "id": "stages",
+     "label": "Which stages will your project use?",
+     "type": "checks",
+     "options": [
+      {
+       "id": "target",
+       "label": "Target structure (and homology model if needed)"
+      },
+      {
+       "id": "screening",
+       "label": "Virtual screening"
+      },
+      {
+       "id": "docking",
+       "label": "Docking"
+      },
+      {
+       "id": "adme",
+       "label": "ADME prediction"
+      },
+      {
+       "id": "network",
+       "label": "Network pharmacology"
+      },
+      {
+       "id": "md",
+       "label": "Molecular dynamics"
+      }
+     ],
+     "hint": "Skipping a stage is fine. Say why below."
+    },
+    {
+     "id": "skipWhy",
+     "label": "If you skip a stage, why?",
+     "type": "textarea"
+    }
+   ]
+  },
+  {
+   "id": "target",
+   "title": "Target structure",
+   "module": {
+    "id": "homology",
+    "label": "Homology Modelling (stand-alone module)"
+   },
+   "why": "Every structure-based step inherits the quality of the structure. Record where it came from, how good it is, and what you did to it.",
+   "mistakes": [
+    "Using the first structure found without checking resolution, ligand or state.",
+    "Leaving waters, alternate locations or missing loops unexamined.",
+    "Using a homology model or prediction with low identity or low confidence in the binding site, without saying so."
+   ],
+   "fields": [
+    {
+     "id": "source",
+     "label": "Where does the structure come from?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "exp",
+       "label": "Experimental (X-ray, cryo-EM or NMR)"
+      },
+      {
+       "id": "af",
+       "label": "Deep-learning prediction (for example AlphaFold)"
+      },
+      {
+       "id": "hm",
+       "label": "Homology model I built"
+      }
+     ]
+    },
+    {
+     "id": "targetName",
+     "label": "Target protein and species",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "pdb",
+     "label": "PDB ID, UniProt ID or model file name",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "resolution",
+     "label": "Resolution (\u00c5) \u2014 experimental structures",
+     "type": "number",
+     "unit": "\u00c5",
+     "min": 0,
+     "max": 10,
+     "step": 0.01
+    },
+    {
+     "id": "ligandIn",
+     "label": "Ligand in the structure (if any)",
+     "type": "text",
+     "hint": "A co-crystallised ligand tells you where the pocket is and gives you a redocking test."
+    },
+    {
+     "id": "plddt",
+     "label": "Prediction confidence in the binding site (pLDDT, 0-100)",
+     "type": "number",
+     "min": 0,
+     "max": 100,
+     "hint": "Only for deep-learning predictions."
+    },
+    {
+     "id": "identity",
+     "label": "Template sequence identity (%) \u2014 homology models",
+     "type": "number",
+     "unit": "%",
+     "min": 0,
+     "max": 100
+    },
+    {
+     "id": "rama",
+     "label": "Residues in the favoured Ramachandran region (%) \u2014 models",
+     "type": "number",
+     "unit": "%",
+     "min": 0,
+     "max": 100
+    },
+    {
+     "id": "prep",
+     "label": "Preparation done",
+     "type": "checks",
+     "options": [
+      {
+       "id": "chain",
+       "label": "Chose the chain or biological unit and said why"
+      },
+      {
+       "id": "waters",
+       "label": "Decided what to do with water molecules"
+      },
+      {
+       "id": "hydrogens",
+       "label": "Added hydrogens and set protonation states (pH stated)"
+      },
+      {
+       "id": "missing",
+       "label": "Checked and repaired missing residues or atoms"
+      },
+      {
+       "id": "cofactors",
+       "label": "Kept important cofactors, metals or haem"
+      },
+      {
+       "id": "altloc",
+       "label": "Checked alternate locations and clashes"
+      }
+     ]
+    },
+    {
+     "id": "notes",
+     "label": "Notes on the structure and your choices",
+     "type": "textarea"
+    }
+   ]
+  },
+  {
+   "id": "screening",
+   "title": "Virtual screening",
+   "module": {
+    "id": "screening",
+    "label": "Module 1: Virtual Screening"
+   },
+   "why": "Screening turns a very large library into a short list that the lab can afford to test. Every filter is a decision, and the numbers at each step tell the story.",
+   "mistakes": [
+    "No known active or inactive compounds to test whether the method can tell them apart.",
+    "Taking the top of one ranking without looking at diversity or assay-interference scaffolds.",
+    "A hit list that is far too long to test."
+   ],
+   "fields": [
+    {
+     "id": "purpose",
+     "label": "What is the screen for?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "hits",
+       "label": "Find new hits for a target"
+      },
+      {
+       "id": "repurpose",
+       "label": "Test existing drugs on a new target"
+      },
+      {
+       "id": "prioritise",
+       "label": "Prioritise a list I already have"
+      }
+     ]
+    },
+    {
+     "id": "library",
+     "label": "Library (name, source, version)",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "method",
+     "label": "Method",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "lb",
+       "label": "Ligand-based (similarity or shape)"
+      },
+      {
+       "id": "sb",
+       "label": "Structure-based (docking)"
+      },
+      {
+       "id": "both",
+       "label": "Both, combined"
+      }
+     ]
+    },
+    {
+     "id": "reference",
+     "label": "Known active used as reference or control",
+     "type": "text",
+     "hint": "For example the drug you already know binds the target."
+    },
+    {
+     "id": "funnel",
+     "label": "The funnel: how many compounds remain after each step?",
+     "type": "table",
+     "required": true,
+     "columns": [
+      {
+       "id": "step",
+       "label": "Step",
+       "type": "text"
+      },
+      {
+       "id": "n",
+       "label": "Compounds remaining",
+       "type": "number"
+      },
+      {
+       "id": "rule",
+       "label": "Rule or threshold",
+       "type": "text"
+      }
+     ],
+     "defaultRows": [
+      {
+       "step": "Start (whole library)"
+      },
+      {
+       "step": "After property filters"
+      },
+      {
+       "step": "After alerts (PAINS) and duplicates"
+      },
+      {
+       "step": "After the screening score"
+      },
+      {
+       "step": "Hits sent forward"
+      }
+     ]
+    },
+    {
+     "id": "validated",
+     "label": "Did you test the method on known actives and decoys?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "yes",
+       "label": "Yes"
+      },
+      {
+       "id": "no",
+       "label": "No"
+      }
+     ]
+    },
+    {
+     "id": "auc",
+     "label": "ROC AUC from that test",
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.01
+    },
+    {
+     "id": "ef",
+     "label": "Enrichment factor (top 1% or 5%)",
+     "type": "number",
+     "min": 0,
+     "step": 0.1
+    },
+    {
+     "id": "diversity",
+     "label": "I checked that the hits are not all the same scaffold",
+     "type": "checks",
+     "options": [
+      {
+       "id": "div",
+       "label": "Checked similarity between hits"
+      },
+      {
+       "id": "pains",
+       "label": "Checked assay-interference (PAINS) alerts"
+      },
+      {
+       "id": "visual",
+       "label": "Looked at the top compounds by eye"
+      }
+     ]
+    },
+    {
+     "id": "notes",
+     "label": "Notes",
+     "type": "textarea"
+    }
+   ]
+  },
+  {
+   "id": "docking",
+   "title": "Docking",
+   "module": {
+    "id": "docking",
+    "label": "Module 2: Molecular Docking"
+   },
+   "why": "Docking predicts a pose and a score. A believable pose, with believable interactions, is worth more than the number.",
+   "mistakes": [
+    "No redocking test of the co-crystallised ligand.",
+    "Choosing by score alone, so large molecules look better only because they are large.",
+    "A search box that misses part of the pocket, or a pose that sits half outside it."
+   ],
+   "fields": [
+    {
+     "id": "program",
+     "label": "Docking program and key settings",
+     "type": "text",
+     "required": true,
+     "hint": "For example: AutoDock Vina, exhaustiveness 16."
+    },
+    {
+     "id": "redockLigand",
+     "label": "Ligand used for the redocking test",
+     "type": "text"
+    },
+    {
+     "id": "redockRmsd",
+     "label": "Redocking RMSD (\u00c5)",
+     "type": "number",
+     "unit": "\u00c5",
+     "min": 0,
+     "step": 0.01,
+     "required": true
+    },
+    {
+     "id": "boxCenter",
+     "label": "Search box centre (x, y, z in \u00c5)",
+     "type": "text"
+    },
+    {
+     "id": "boxSize",
+     "label": "Search box size (x, y, z in \u00c5)",
+     "type": "text"
+    },
+    {
+     "id": "boxChecks",
+     "label": "Box checks",
+     "type": "checks",
+     "options": [
+      {
+       "id": "cover",
+       "label": "The box covers the whole pocket with a margin"
+      },
+      {
+       "id": "notHuge",
+       "label": "It is not far larger than the pocket"
+      },
+      {
+       "id": "center",
+       "label": "It is centred on a known ligand or key residues"
+      }
+     ]
+    },
+    {
+     "id": "referenceName",
+     "label": "Reference compound docked as a control",
+     "type": "text",
+     "hint": "Usually the known drug."
+    },
+    {
+     "id": "results",
+     "label": "Docking results",
+     "type": "table",
+     "required": true,
+     "columns": [
+      {
+       "id": "name",
+       "label": "Compound",
+       "type": "text"
+      },
+      {
+       "id": "score",
+       "label": "Score (kcal/mol)",
+       "type": "number"
+      },
+      {
+       "id": "ha",
+       "label": "Heavy atoms",
+       "type": "number"
+      },
+      {
+       "id": "hbonds",
+       "label": "H-bond residues",
+       "type": "text"
+      },
+      {
+       "id": "key",
+       "label": "Key residues contacted",
+       "type": "number"
+      },
+      {
+       "id": "inside",
+       "label": "Inside the pocket",
+       "type": "select",
+       "options": [
+        "yes",
+        "partly",
+        "no"
+       ]
+      },
+      {
+       "id": "rmsd",
+       "label": "RMSD to reference pose (\u00c5)",
+       "type": "number"
+      },
+      {
+       "id": "le",
+       "label": "Ligand efficiency",
+       "computed": "ligandEfficiency"
+      }
+     ],
+     "defaultRows": [
+      {},
+      {},
+      {}
+     ]
+    },
+    {
+     "id": "evidence",
+     "label": "Evidence I used to choose",
+     "type": "checks",
+     "options": [
+      {
+       "id": "score",
+       "label": "Docking score"
+      },
+      {
+       "id": "hbonds",
+       "label": "Hydrogen bonds and other interactions"
+      },
+      {
+       "id": "key",
+       "label": "Contact with key residues"
+      },
+      {
+       "id": "le",
+       "label": "Ligand efficiency (size-corrected)"
+      },
+      {
+       "id": "pose",
+       "label": "Pose compared with the reference pose"
+      },
+      {
+       "id": "clash",
+       "label": "Checked for clashes"
+      },
+      {
+       "id": "visual",
+       "label": "Looked at the pose in 3D"
+      },
+      {
+       "id": "rescore",
+       "label": "Rescored with a second method"
+      }
+     ]
+    },
+    {
+     "id": "choice",
+     "label": "Compound I will take forward, and why",
+     "type": "textarea",
+     "required": true
+    }
+   ]
+  },
+  {
+   "id": "adme",
+   "title": "ADME",
+   "module": {
+    "id": "adme",
+    "label": "Module 3: ADME Prediction"
+   },
+   "why": "A strong binder is not a drug if the body cannot absorb it, carry it, survive it or clear it. Predict the obvious failures early.",
+   "mistakes": [
+    "Ignoring the route of administration.",
+    "Reading a green tick as a guarantee.",
+    "Forgetting that charge and pH change absorption."
+   ],
+   "fields": [
+    {
+     "id": "tools",
+     "label": "ADME tool(s) used",
+     "type": "text",
+     "required": true,
+     "hint": "For example SwissADME or pkCSM."
+    },
+    {
+     "id": "route",
+     "label": "Intended route of administration",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "oral",
+       "label": "Oral"
+      },
+      {
+       "id": "topical",
+       "label": "Topical or skin"
+      },
+      {
+       "id": "inject",
+       "label": "Injection"
+      },
+      {
+       "id": "inhal",
+       "label": "Inhaled"
+      }
+     ]
+    },
+    {
+     "id": "table",
+     "label": "Predicted properties",
+     "type": "table",
+     "required": true,
+     "columns": [
+      {
+       "id": "name",
+       "label": "Compound",
+       "type": "text"
+      },
+      {
+       "id": "mw",
+       "label": "MW (Da)",
+       "type": "number"
+      },
+      {
+       "id": "logp",
+       "label": "cLogP",
+       "type": "number"
+      },
+      {
+       "id": "tpsa",
+       "label": "TPSA (\u00c5\u00b2)",
+       "type": "number"
+      },
+      {
+       "id": "hbd",
+       "label": "H-bond donors",
+       "type": "number"
+      },
+      {
+       "id": "hba",
+       "label": "H-bond acceptors",
+       "type": "number"
+      },
+      {
+       "id": "rotb",
+       "label": "Rotatable bonds",
+       "type": "number"
+      },
+      {
+       "id": "gi",
+       "label": "GI absorption",
+       "type": "select",
+       "options": [
+        "high",
+        "low"
+       ]
+      },
+      {
+       "id": "pains",
+       "label": "PAINS alerts",
+       "type": "number"
+      },
+      {
+       "id": "viol",
+       "label": "Rule-of-five breaks",
+       "computed": "ro5"
+      },
+      {
+       "id": "veber",
+       "label": "Veber",
+       "computed": "veber"
+      }
+     ],
+     "defaultRows": [
+      {},
+      {},
+      {}
+     ]
+    },
+    {
+     "id": "considered",
+     "label": "I also thought about",
+     "type": "checks",
+     "options": [
+      {
+       "id": "ph",
+       "label": "Ionisation at the pH of the gut or blood"
+      },
+      {
+       "id": "met",
+       "label": "Metabolic soft spots (for example CYP oxidation)"
+      },
+      {
+       "id": "bbb",
+       "label": "Whether it needs to, or must not, enter the brain"
+      },
+      {
+       "id": "clear",
+       "label": "How it is cleared and how long it lasts"
+      }
+     ]
+    },
+    {
+     "id": "decision",
+     "label": "Compound(s) I continue with, and what I would measure next",
+     "type": "textarea",
+     "required": true
+    }
+   ]
+  },
+  {
+   "id": "network",
+   "title": "Network pharmacology",
+   "module": {
+    "id": "network",
+    "label": "Module 4: Network Pharmacology"
+   },
+   "why": "A drug rarely hits one protein. A network shows which targets and pathways may matter, and where to look in the lab. It is a map of hypotheses.",
+   "mistakes": [
+    "Using a \"top 50\" cut-off instead of a score threshold.",
+    "Reporting enriched pathways without correction or without saying the background.",
+    "Calling hub proteins \"the targets\"."
+   ],
+   "fields": [
+    {
+     "id": "targetTools",
+     "label": "Target prediction tool(s)",
+     "type": "text",
+     "required": true,
+     "hint": "The protocol recommends at least two with different methods."
+    },
+    {
+     "id": "diseaseDbs",
+     "label": "Disease gene database(s)",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "selection",
+     "label": "How did you select genes?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "threshold",
+       "label": "By a published score threshold"
+      },
+      {
+       "id": "topn",
+       "label": "By taking the top N"
+      },
+      {
+       "id": "none",
+       "label": "No selection"
+      }
+     ]
+    },
+    {
+     "id": "nCompound",
+     "label": "Number of compound targets",
+     "type": "number",
+     "min": 0,
+     "required": true
+    },
+    {
+     "id": "nDisease",
+     "label": "Number of disease genes",
+     "type": "number",
+     "min": 0,
+     "required": true
+    },
+    {
+     "id": "nOverlap",
+     "label": "Number in both lists (candidate targets)",
+     "type": "number",
+     "min": 0,
+     "required": true
+    },
+    {
+     "id": "stringConf",
+     "label": "STRING minimum confidence",
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "required": true
+    },
+    {
+     "id": "hubs",
+     "label": "Hub proteins (list)",
+     "type": "text",
+     "required": true
+    },
+    {
+     "id": "hubMethod",
+     "label": "Hub measure(s)",
+     "type": "select",
+     "options": [
+      {
+       "id": "degree",
+       "label": "Degree only"
+      },
+      {
+       "id": "multi",
+       "label": "Degree plus betweenness and closeness"
+      }
+     ]
+    },
+    {
+     "id": "background",
+     "label": "Background used for enrichment",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "genome",
+       "label": "Whole genome"
+      },
+      {
+       "id": "study",
+       "label": "Only the genes in this study"
+      },
+      {
+       "id": "unsure",
+       "label": "I do not know"
+      }
+     ]
+    },
+    {
+     "id": "pathways",
+     "label": "Top enriched pathways",
+     "type": "table",
+     "columns": [
+      {
+       "id": "name",
+       "label": "Pathway",
+       "type": "text"
+      },
+      {
+       "id": "genes",
+       "label": "Genes",
+       "type": "number"
+      },
+      {
+       "id": "q",
+       "label": "Corrected p (FDR q)",
+       "type": "number"
+      }
+     ],
+     "defaultRows": [
+      {},
+      {},
+      {}
+     ]
+    },
+    {
+     "id": "plan",
+     "label": "What will you test in the lab or with another method?",
+     "type": "textarea",
+     "required": true
+    }
+   ]
+  },
+  {
+   "id": "md",
+   "title": "Molecular dynamics",
+   "module": {
+    "id": "md",
+    "label": "Module 5: Molecular Dynamics"
+   },
+   "why": "Docking gives one frozen picture. MD asks whether the pose survives when everything moves. A short, single, unequilibrated run answers very little.",
+   "mistakes": [
+    "Averaging over the part of the run that was still settling.",
+    "One run only.",
+    "Quoting an MM-GBSA energy as if it were a measured binding energy, or from a run where the drug left."
+   ],
+   "fields": [
+    {
+     "id": "program",
+     "label": "MD program and force field",
+     "type": "text",
+     "required": true,
+     "hint": "For example GROMACS 2024, CHARMM36."
+    },
+    {
+     "id": "water",
+     "label": "Water model, ions and box",
+     "type": "text",
+     "required": true,
+     "hint": "For example TIP3P, 0.15 M NaCl, cubic box 1.0 nm from the protein."
+    },
+    {
+     "id": "temperature",
+     "label": "Temperature (K)",
+     "type": "number",
+     "min": 0
+    },
+    {
+     "id": "pressure",
+     "label": "Pressure (bar)",
+     "type": "number",
+     "min": 0
+    },
+    {
+     "id": "dt",
+     "label": "Time step (fs)",
+     "type": "number",
+     "min": 0,
+     "step": 0.5,
+     "required": true
+    },
+    {
+     "id": "constraints",
+     "label": "Bond constraints used (for example LINCS or SHAKE on hydrogen bonds)",
+     "type": "select",
+     "options": [
+      {
+       "id": "yes",
+       "label": "Yes"
+      },
+      {
+       "id": "no",
+       "label": "No"
+      }
+     ]
+    },
+    {
+     "id": "prep",
+     "label": "Preparation steps done",
+     "type": "checks",
+     "options": [
+      {
+       "id": "min",
+       "label": "Energy minimisation"
+      },
+      {
+       "id": "nvt",
+       "label": "NVT equilibration"
+      },
+      {
+       "id": "npt",
+       "label": "NPT equilibration"
+      }
+     ]
+    },
+    {
+     "id": "length",
+     "label": "Production run length per replica (ns)",
+     "type": "number",
+     "min": 0,
+     "required": true
+    },
+    {
+     "id": "replicas",
+     "label": "Number of independent replicas",
+     "type": "number",
+     "min": 1,
+     "required": true
+    },
+    {
+     "id": "discard",
+     "label": "Time discarded as equilibration (ns)",
+     "type": "number",
+     "min": 0
+    },
+    {
+     "id": "plateau",
+     "label": "Did protein RMSD reach a plateau?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "yes",
+       "label": "Yes"
+      },
+      {
+       "id": "no",
+       "label": "No"
+      },
+      {
+       "id": "unsure",
+       "label": "Not sure"
+      }
+     ]
+    },
+    {
+     "id": "ligRmsd",
+     "label": "Ligand RMSD after fitting on the protein (\u00c5, mean)",
+     "type": "number",
+     "min": 0,
+     "step": 0.1
+    },
+    {
+     "id": "left",
+     "label": "Did the ligand leave the pocket?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "no",
+       "label": "No"
+      },
+      {
+       "id": "yes",
+       "label": "Yes"
+      },
+      {
+       "id": "partly",
+       "label": "Partly or temporarily"
+      }
+     ]
+    },
+    {
+     "id": "hbOcc",
+     "label": "Occupancy of the key hydrogen bond (% of frames)",
+     "type": "number",
+     "unit": "%",
+     "min": 0,
+     "max": 100
+    },
+    {
+     "id": "dG",
+     "label": "MM-GBSA or MM-PBSA binding energy (kcal/mol), if calculated",
+     "type": "number",
+     "step": 0.1
+    },
+    {
+     "id": "dGerr",
+     "label": "Error on that value (standard error)",
+     "type": "number",
+     "min": 0,
+     "step": 0.1
+    },
+    {
+     "id": "notes",
+     "label": "What do the RMSD, RMSF and hydrogen-bond graphs show?",
+     "type": "textarea",
+     "required": true
+    }
+   ]
+  },
+  {
+   "id": "conclude",
+   "title": "Conclusions",
+   "module": null,
+   "why": "A conclusion says what the evidence supports and what it does not. Weak evidence honestly described is better than strong claims.",
+   "mistakes": [
+    "Calling a prediction a proof.",
+    "No limitations.",
+    "A next step that does not test the hypothesis."
+   ],
+   "fields": [
+    {
+     "id": "claim",
+     "label": "What do your results show?",
+     "type": "select",
+     "required": true,
+     "options": [
+      {
+       "id": "hyp",
+       "label": "A computer-based hypothesis that needs experimental testing"
+      },
+      {
+       "id": "proof",
+       "label": "Proof that the compound works"
+      },
+      {
+       "id": "mech",
+       "label": "The mechanism of action"
+      }
+     ]
+    },
+    {
+     "id": "summary",
+     "label": "Summary of what you found",
+     "type": "textarea",
+     "required": true
+    },
+    {
+     "id": "limits",
+     "label": "Limitations (at least three)",
+     "type": "textarea",
+     "required": true,
+     "hint": "Think about the structure, the scoring or model, the data and the number of runs."
+    },
+    {
+     "id": "nextSteps",
+     "label": "Next steps",
+     "type": "checks",
+     "options": [
+      {
+       "id": "assay",
+       "label": "Laboratory binding or activity assay"
+      },
+      {
+       "id": "mut",
+       "label": "Mutate a key residue and measure the effect"
+      },
+      {
+       "id": "repeat",
+       "label": "Repeat with another method or software"
+      },
+      {
+       "id": "adme",
+       "label": "Measure solubility, permeability or stability"
+      },
+      {
+       "id": "md",
+       "label": "Longer or repeated simulations"
+      }
+     ]
+    },
+    {
+     "id": "reflection",
+     "label": "Reflection: which step taught you the most, and what would you do differently?",
+     "type": "textarea",
+     "required": true
+    }
+   ]
+  }
+ ]
+}
