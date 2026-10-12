@@ -52,6 +52,14 @@ Target: rat GluA2 N-terminal domain (PDB 3HSY, hidden as the "truth"). Candidate
 - Real data: coordinates and sequences from the PDB, prepared by `tools/prepare-homology.py` (Biopython + numpy). Citations come from the PDB file records.
 - Simplified: the model is a C-alpha trace copied from the template (no side chains, no refinement), so it teaches the ideas but is not a substitute for MODELLER or SWISS-MODEL. The environment check and the empirical Ramachandran map are rough. The target structure is public and hidden for teaching only. Deep-learning predictors (for example AlphaFold) are named as an alternative.
 
+## Handbook: glossary and appendices
+`#/handbook` is the supplementary reference for the modules and the workbook (`data/glossary.json`, `data/handbook.json`; built by `tools/make-glossary.py` and `tools/make-handbook.py`).
+- **Glossary:** about 165 terms and abbreviations with the full form, a plain definition, formulae where useful and the modules that use them. Search, filter by category or module, jump by letter, download as Markdown or CSV.
+- **Abbreviations in the modules:** the first use of each abbreviation on a page is underlined (dotted). Click or tap it for a short definition and a link to the glossary entry. This runs on every module and workbook page (`js/handbook/annotate.js`).
+- **Appendices:** A numbers and rules of thumb, B units and symbols, C formulae in plain words, D file formats, E tools by stage, F what is real, simulated or mock in each module, G ten questions to ask of any CADD result, H reading list and credits.
+- **Print:** "Print the whole handbook" gives one printable page (use the browser's print to save a PDF).
+- A test (`npm test`) fails if an abbreviation appears in the module text but is missing from the glossary, so the glossary cannot silently fall behind. The reading list was written from memory of the literature: check each reference before citing it.
+
 ## Project workbook (hands-on)
 `#/project` is a guided lab notebook for a student's **own** project, done in their own software (AutoDock Vina, SwissADME, STRING, GROMACS, anything). It does not run calculations. It records them and checks them.
 - Eight stages: set-up, target structure, virtual screening, docking, ADME, network pharmacology, molecular dynamics, conclusions. Each has "why this stage", common mistakes, a link to the matching concept module, and fields for the numbers and decisions.

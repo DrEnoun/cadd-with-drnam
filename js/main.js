@@ -4,9 +4,10 @@ import { store } from './store.js';
 import { modules, byId } from './modules/registry.js';
 import { exportCsv } from './eval.js';
 import { describe, chainIds, downloadProject } from './case.js';
+import { startAnnotate } from './handbook/annotate.js';
 
 const app = document.getElementById('app');
-let cleanup = null;
+let cleanup = null, stopAnnotate = null;
 
 function applyTheme() {
   const day = store.get('theme') === 'day';
@@ -16,17 +17,19 @@ function applyTheme() {
 document.getElementById('btn-theme').addEventListener('click', () => { store.set('theme', store.get('theme') === 'day' ? 'night' : 'day'); applyTheme(); });
 
 async function route() {
-  cleanup?.(); cleanup = null; app.innerHTML = '';
+  cleanup?.(); cleanup = null; stopAnnotate?.(); stopAnnotate = null; app.innerHTML = '';
   const [, page = '', ...rest] = location.hash.replace(/^#/, '').split('/');
-  document.querySelectorAll('.toolbar a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === `#/${['results', 'about', 'project'].includes(page) ? page : ''}`)));
+  document.querySelectorAll('.toolbar a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === `#/${['results', 'about', 'project', 'handbook'].includes(page) ? page : ''}`)));
   const m = byId(page);
   if (m?.status === 'ready') {
     const mod = await m.load();
     cleanup = mod.default(app, { route: rest, module: m }) || null;
-  } else if (page === 'project') cleanup = (await import('./project/index.js')).default(app, { route: rest }) || null;
+  } else if (page === 'handbook') cleanup = (await import('./handbook/index.js')).default(app, { route: rest }) || null;
+  else if (page === 'project') cleanup = (await import('./project/index.js')).default(app, { route: rest }) || null;
   else if (page === 'results') record();
   else if (page === 'about') about();
   else cleanup = home() || null;
+  if (page !== 'handbook') startAnnotate(app).then(f => { stopAnnotate = f; });
   window.scrollTo(0, 0);
 }
 
@@ -71,6 +74,7 @@ function home() {
         m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : null)))),
     h('h2', { class: 'section-title' }, 'Your own project'),
     h('a', { class: 'card sticker-static', href: '#/project', style: 'display:block;text-decoration:none' }, h('span', { class: 'mod__n' }, 'Hands-on'), h('h3', { style: 'margin:4px 0' }, 'Project workbook'), h('p', { style: 'margin:0 0 8px' }, 'Do your own CADD project in your own software. The workbook asks the questions a supervisor would ask, checks your numbers, flags common mistakes and builds your report.'), h('span', { class: 'go' }, 'Open the workbook →')),
+    h('a', { class: 'card sticker-static', href: '#/handbook', style: 'display:block;text-decoration:none;margin-top:16px' }, h('span', { class: 'mod__n' }, 'Reference'), h('h3', { style: 'margin:4px 0' }, 'Handbook: glossary and appendices'), h('p', { style: 'margin:0 0 8px' }, 'Every abbreviation explained, plus rules of thumb, units, formulae, file formats, tools and a reading list.'), h('span', { class: 'go' }, 'Open the handbook →')),
     h('h2', { class: 'section-title' }, 'Stand-alone module'),
     h('div', { class: 'mods mods--single' }, modules.filter(m => m.standalone).map(m => h('a', { class: 'mod sticker-static', href: `#/${m.id}` },
       h('div', { class: 'mod__art' }, art(m.art, `Illustration for ${m.title}`)),

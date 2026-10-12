@@ -273,3 +273,34 @@ select option { background: #ffffff; color: #231f20; }
 .wb-t-block { background: var(--coral-400); color: #0b1220; }
 .wb-t-warn { background: #ffd23a; color: #0b1220; }
 .stepper a.is-off { opacity: .55; }
+
+/* handbook, glossary and abbreviations */
+abbr.gl { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
+abbr.gl:focus-visible { outline: 3px solid var(--spark-400); outline-offset: 2px; border-radius: 4px; }
+.gl-pop { position: fixed; z-index: 50; background: #ffffff; color: #101827; border: 3px solid #101827; border-radius: 14px; padding: 12px 14px; box-shadow: 4px 4px 0 #101827; font-size: 15px; line-height: 1.45; }
+.gl-pop p { margin: 6px 0; }
+.gl-pop a { font-weight: 700; color: #3b2a8c; }
+.hb-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.hb-nav a { text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 2px solid var(--glass-edge); background: var(--surface-100); font-weight: 600; font-size: 15px; }
+.hb-nav a.is-current { background: var(--spark-400); color: #0b1220; border-color: #0b1220; }
+.hb-tools { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+@media (max-width: 700px) { .hb-tools { grid-template-columns: 1fr; } }
+.hb-tools input, .hb-tools select { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 2px solid var(--glass-edge); background: var(--surface-000); color: var(--ink-strong); }
+.hb-az a { font-weight: 700; text-decoration: none; padding: 2px 8px; border-radius: 8px; background: var(--surface-100); }
+.hb-letter { margin: 18px 0 4px; padding-bottom: 4px; border-bottom: 3px solid var(--spark-400); }
+.hb-entry { padding: 10px 0; border-bottom: 1px solid var(--glass-edge); scroll-margin-top: 80px; }
+.hb-entry h4 { margin: 0 0 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hb-entry p { margin: 4px 0; }
+.hb-abbr { font-weight: 600; opacity: .75; font-size: 15px; }
+.hb-full { font-style: italic; opacity: .85; }
+.hb-more, .hb-formula { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: var(--surface-100); padding: 6px 10px; border-radius: 8px; }
+.hb-entry.is-flash { animation: hbflash 2s ease; }
+@keyframes hbflash { 0% { background: color-mix(in srgb, var(--spark-400) 45%, transparent); } 100% { background: transparent; } }
+.hb-appendix { margin-top: 24px; }
+@media print {
+  .toolbar, .topbar, .foot, .hb-nav, .hb-noprint, .hb-tools, .hb-az, .modbar { display: none !important; }
+  body, .glass, .handbook { background: #fff !important; color: #000 !important; box-shadow: none !important; border: 0 !important; backdrop-filter: none !important; }
+  .hb-entry, .card, tr { break-inside: avoid; }
+  .hb-appendix { break-before: page; }
+  a { color: #000; text-decoration: none; }
+}
