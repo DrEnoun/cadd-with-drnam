@@ -186,7 +186,7 @@ export function overview(spec, data) {
 const show = (f, v) => Array.isArray(v) && f.type === 'checks' ? v.map(id => f.options.find(o => o.id === id)?.label || id).join('; ') : f.type === 'select' ? (f.options.find(o => o.id === v)?.label ?? v) : v;
 export function report(spec, data, meta = {}) {
   const ov = overview(spec, data), out = [];
-  out.push(`# ${get(data, 'setup', 'title') || 'My CADD project'}`, '', `Participant code: ${meta.code || '-'} · Generated: ${meta.date || ''}`, '', '> Prepared with the CADD with Dr. NAM project workbook (educational use only; not for real drug-design, clinical or regulatory decisions). The "automatic review" notes are rule-based prompts, not a substitute for supervision.', '');
+  out.push(`# ${get(data, 'setup', 'title') || 'My CADD project'}`, '', `Participant code: ${meta.code || '-'} · Generated: ${meta.date || ''}`, '', '> Prepared with the CADD with Dr. NAM project workbook (PRACTICE EXERCISE for this course only: not real data, not a research record, and not for real drug-design, clinical or regulatory decisions). The "automatic review" notes are rule-based prompts, not a substitute for supervision.', '');
   spec.stages.forEach(s => {
     const r = ov.rows.find(x => x.id === s.id); if (!r.used) { out.push(`## ${s.title}`, '', '_Not used in this project._', ''); return; }
     out.push(`## ${s.title}`, '');

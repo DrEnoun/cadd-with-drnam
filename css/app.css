@@ -319,3 +319,5 @@ abbr.gl:focus-visible { outline: 3px solid var(--spark-400); outline-offset: 2px
 .foot { font-size: 14px; opacity: .92; }
 .foot p { margin: 4px auto; max-width: 900px; }
 .foot a { font-weight: 700; }
+.notice--practice { background: #ffd9d4; border-color: #7a1f14; }
+.notice--practice.notice--compact { margin: 0; }

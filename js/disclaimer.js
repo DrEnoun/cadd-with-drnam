@@ -4,6 +4,13 @@ import { h, fetchJson } from './ui.js';
 export const SHORT = 'Educational use only. The modules teach concepts with real, mock and simulated data, as stated in each module. Nothing here is medical advice or a basis for real drug-design, clinical or regulatory decisions.';
 export const AI_NOTE = 'The illustrations on this site are AI-generated and are used for educational purposes. They are artistic, not to scale and not scientific data.';
 
+export const PRACTICE_NOTE = 'Practice exercise for this course only. Use the worked examples or practice numbers from your tutorial exercises. Do not enter real, confidential, unpublished or personal data: the workbook is not a research record or a laboratory notebook, and it stays in this module and in your browser.';
+/** The practice-only warning for the project workbook. variant 'full' on the home card and the workbook start page. */
+export function practiceNotice(variant = 'compact') {
+  if (variant === 'full') return h('div', { class: 'notice notice--practice', role: 'note' }, h('strong', {}, 'For use within this module only. Not real data. '), 'This is a practice exercise. Use the worked examples or practice numbers from your tutorial exercises. Do not enter real, confidential, unpublished or personal research data. It is not a research record or a laboratory notebook, and it stays in this module and in your browser.');
+  return h('div', { class: 'notice notice--practice notice--compact', role: 'note' }, h('strong', {}, 'Practice exercise, not real data. '), 'For use within this module only. Do not enter real, confidential or personal research data.');
+}
+
 /** Small label placed on top of an illustration. */
 export const aiBadge = () => h('span', { class: 'ai-badge', 'data-no-abbr': '', title: AI_NOTE }, 'AI-generated illustration');
 
@@ -30,7 +37,8 @@ export async function disclaimerPage(host) {
       h('p', {}, 'The 3D molecular views and charts inside the modules are not AI images: the site draws them itself from real or simulated coordinates and numbers.')),
     sec('5. How the software was made', h('p', {}, 'Parts of the software were developed with the help of an AI coding assistant (Claude, by Anthropic) under the author\'s direction. The author is responsible for the content. Teaching text, rules of thumb and the reading list should be checked by the user, as for any educational resource.')),
     sec('6. Third-party material', h('p', {}, 'Structures come from the Protein Data Bank. Chemistry calculations use RDKit, and the 3D views use three.js. The network pharmacology workflow follows the NAM-NPeasy protocol by Dr Nur \'Ainun Mokhtar. The university and sponsor logos belong to their owners. Names of software and databases are trademarks of their owners and are mentioned for identification only.')),
-    sec('7. Privacy', h('p', {}, 'The site has no server. Your progress, answers and workbook are stored only in your own browser, and you decide whether to download and submit them. Data are used for research only if you give consent on the consent screen.')),
-    sec('8. No warranty', h('p', {}, 'The site is provided as it is, without warranty of any kind. The author is not liable for any loss arising from its use. If you find an error, please tell the author', cfg.contact ? ` (${cfg.contact})` : '', '.')),
+    sec('7. The project workbook is practice only', h('p', {}, PRACTICE_NOTE), h('p', {}, 'If you work on a real research project, keep its data and records in your institution\'s approved systems, and follow your supervisor\'s and your ethics committee\'s rules.')),
+    sec('8. Privacy', h('p', {}, 'The site has no server. Your progress, answers and workbook are stored only in your own browser, and you decide whether to download and submit them. Data are used for research only if you give consent on the consent screen.')),
+    sec('9. No warranty', h('p', {}, 'The site is provided as it is, without warranty of any kind. The author is not liable for any loss arising from its use. If you find an error, please tell the author', cfg.contact ? ` (${cfg.contact})` : '', '.')),
     h('p', { class: 'muted' }, `${cfg.lecturer || 'Dr. NAM, Universiti Teknologi MARA'}${cfg.version ? ' · version ' + cfg.version : ''}`)));
 }
