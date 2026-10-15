@@ -1,7 +1,7 @@
 // The project workbook: a guided lab notebook for a student's own CADD project, with automatic checks, a report and a supervisor view.
 import { h, fetchJson, download } from '../ui.js';
 import { store } from '../store.js';
-import { notice } from '../disclaimer.js';
+import { notice, practiceNotice, PRACTICE_NOTE } from '../disclaimer.js';
 import { overview, stageChecks, completeness, report, computedValue, usedStages, empty } from './rules.js';
 
 const KEY = 'project';
@@ -39,10 +39,11 @@ export default function mount(host, ctx) {
     const d = getData(), ov = overview(spec, d), any = Object.keys(d).length > 0;
     const fileIn = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none', onchange: e => importFile(e.target.files[0], false) });
     host.append(h('section', { class: 'glass stack' },
-      h('p', { class: 'eyebrow' }, 'Your own project'), h('h1', {}, 'Project workbook'),
-      h('p', { class: 'lead' }, 'Use this with your own target, compounds and software. The workbook is your lab notebook: it asks the questions a supervisor would ask, checks your numbers, points out common mistakes and builds your report. It never runs the calculations for you. You do those in your own software, then record and interpret them here.'),
+      h('p', { class: 'eyebrow' }, 'Your own project: practice only'), h('h1', {}, 'Project workbook'),
+      h('p', { class: 'lead' }, 'Practise running a CADD project from question to conclusion. The workbook asks the questions a supervisor would ask, checks your numbers, points out common mistakes and builds a practice report. It never runs the calculations for you: do the exercise in the software you are learning, then record and interpret the practice results here.'),
+      practiceNotice('full'),
       notice('compact'),
-      h('div', { class: 'card sticker-static' }, h('strong', {}, 'Private to this browser. '), 'Nothing is sent anywhere. Download your project file to keep it or to send it to your supervisor.'),
+      h('div', { class: 'card sticker-static' }, h('strong', {}, 'Private to this browser. '), 'Nothing is sent anywhere. Download your practice file to keep it or to send it to your lecturer.'),
       h('div', { class: 'row' },
         h('button', { class: 'sticker', type: 'button', onclick: () => loadExample('good') }, 'Load a worked example'),
         h('button', { class: 'sticker', type: 'button', onclick: () => loadExample('flawed') }, 'Load an example with mistakes'),
@@ -59,7 +60,7 @@ export default function mount(host, ctx) {
   }
   const route = () => { host.innerHTML = ''; show(); };
   function loadExample(k) { if (Object.keys(getData()).length && !confirm('This replaces what is in your workbook now. Continue?')) return; save(JSON.parse(JSON.stringify(ex[k]))); store.log('project', 'overview', 'example', k); route(); }
-  const exportJson = () => download(`project-${store.get('code') || 'anon'}.json`, JSON.stringify({ app: 'cadd-workbook', version: 1, code: store.get('code') || null, exportedAt: new Date().toISOString(), data: getData() }, null, 1), 'application/json');
+  const exportJson = () => download(`project-${store.get('code') || 'anon'}.json`, JSON.stringify({ app: 'cadd-workbook', version: 1, practiceOnly: true, note: PRACTICE_NOTE, code: store.get('code') || null, exportedAt: new Date().toISOString(), data: getData() }, null, 1), 'application/json');
   async function importFile(file, reviewOnly) {
     if (!file) return null;
     try { const j = JSON.parse(await file.text()); if (j.app !== 'cadd-workbook' || typeof j.data !== 'object') throw new Error('not a workbook file');
@@ -78,6 +79,7 @@ export default function mount(host, ctx) {
     host.append(body);
     body.append(h('p', { class: 'eyebrow' }, `Stage ${i + 1} of ${spec.stages.length}`), h('h2', {}, st.title),
       h('div', { class: 'why' }, h('strong', {}, 'Why this stage? '), st.why, st.module ? h('span', {}, ' ', h('a', { href: `#/${st.module.id}`, class: 'wb-learn' }, `Learn the concept: ${st.module.label}`)) : ''),
+      practiceNotice('compact'),
       h('details', { class: 'fine' }, h('summary', {}, 'Common mistakes'), h('ul', {}, st.mistakes.map(m => h('li', {}, m)))));
     const grid = h('div', { class: 'wb-grid' }), form = h('div', { class: 'stack' }), side = h('aside', { class: 'wb-side' }, h('h3', { style: 'margin-top:0' }, 'Automatic review'), review, prog);
     grid.append(form, side); body.append(grid);
@@ -127,6 +129,7 @@ export default function mount(host, ctx) {
     host.append(h('div', { class: 'modbar' }, h('a', { class: 'sticker back-main', href: '#/project' }, '← Project overview')));
     const box = h('section', { class: 'glass stack' }, h('p', { class: 'eyebrow' }, 'For supervisors'), h('h1', {}, 'Supervisor view'),
       h('p', {}, 'Open a student\'s project file (.json). You see the same automatic checks the student sees, so you can spend your time on the science. Your comments are not saved on this site: download them as a feedback file.'));
+    box.append(practiceNotice('compact'));
     const out = h('div', { class: 'stack' }); host.append(box, out);
     const fileIn = h('input', { type: 'file', accept: 'application/json,.json', 'aria-label': 'Student project file', onchange: async e => { const j = await importFile(e.target.files[0], true); if (j) render(j); } });
     box.append(fileIn, h('p', { class: 'muted' }, 'Nothing is uploaded: the file is read in your browser.'));

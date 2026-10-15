@@ -5,7 +5,7 @@ import { modules, byId } from './modules/registry.js';
 import { exportCsv } from './eval.js';
 import { describe, chainIds, downloadProject } from './case.js';
 import { startAnnotate } from './handbook/annotate.js';
-import { notice, aiBadge, disclaimerPage } from './disclaimer.js';
+import { notice, aiBadge, disclaimerPage, practiceNotice } from './disclaimer.js';
 
 const app = document.getElementById('app');
 let cleanup = null, stopAnnotate = null;
@@ -76,8 +76,8 @@ function home() {
         h('span', { class: 'mod__n' }, `Module ${m.n}`),
         h('h3', {}, m.title), h('p', {}, m.blurb),
         m.status === 'ready' ? h('span', { class: 'go' }, store.isDone(m.id, 'finish') ? 'Completed ✓ Open again →' : 'Start →') : null)))),
-    h('h2', { class: 'section-title' }, 'Your own project'),
-    h('a', { class: 'card sticker-static', href: '#/project', style: 'display:block;text-decoration:none' }, h('span', { class: 'mod__n' }, 'Hands-on'), h('h3', { style: 'margin:4px 0' }, 'Project workbook'), h('p', { style: 'margin:0 0 8px' }, 'Do your own CADD project in your own software. The workbook asks the questions a supervisor would ask, checks your numbers, flags common mistakes and builds your report.'), h('span', { class: 'go' }, 'Open the workbook →')),
+    h('h2', { class: 'section-title' }, 'Your own project (practice only)'),
+    h('div', { class: 'card sticker-static stack' }, h('span', { class: 'mod__n' }, 'Hands-on practice'), h('h3', { style: 'margin:4px 0' }, 'Project workbook'), practiceNotice('full'), h('p', { style: 'margin:0' }, 'Practise a whole CADD project in the software you are learning. The workbook asks the questions a supervisor would ask, checks your numbers, flags common mistakes and builds a practice report.'), h('a', { class: 'go', href: '#/project' }, 'Open the workbook →')),
     h('a', { class: 'card sticker-static', href: '#/handbook', style: 'display:block;text-decoration:none;margin-top:16px' }, h('span', { class: 'mod__n' }, 'Reference'), h('h3', { style: 'margin:4px 0' }, 'Handbook: glossary and appendices'), h('p', { style: 'margin:0 0 8px' }, 'Every abbreviation explained, plus rules of thumb, units, formulae, file formats, tools and a reading list.'), h('span', { class: 'go' }, 'Open the handbook →')),
     h('h2', { class: 'section-title' }, 'Stand-alone module'),
     h('div', { class: 'mods mods--single' }, modules.filter(m => m.standalone).map(m => h('a', { class: 'mod sticker-static', href: `#/${m.id}` },

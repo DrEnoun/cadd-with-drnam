@@ -173,7 +173,7 @@ G('nampeasy', 'NAM-NPeasy', ['NAM-NPeasy'], '', 'The network pharmacology tutori
 # ---------------------------------------------------------------- site
 G('sus', 'SUS', ['SUS'], 'System Usability Scale', 'A ten-question survey that gives a usability score from 0 to 100.', 'site', ['all'])
 G('casefile', 'Case file', [], '', 'What you decided in each module, saved in your browser and passed to the next module.', 'site', ['all'])
-G('workbook', 'Project workbook', [], '', 'The hands-on notebook for your own project, with automatic checks and a report.', 'site', ['project'])
+G('workbook', 'Project workbook', [], '', 'The hands-on practice notebook: a whole CADD project from question to conclusion, with automatic checks and a report. For use within this course only; do not enter real data.', 'site', ['project'])
 G('uitm', 'UiTM', ['UiTM', 'MARA'], 'Universiti Teknologi MARA', 'The university where the site was created.', 'site', ['all'])
 
 G('resnames', 'Residue names', ['His90', 'Gln192', 'Arg513', 'Arg120', 'Phe518', 'Val349', 'Leu352', 'Val523', 'Ser353', 'Tyr355', 'HIS90', 'GLN192', 'ARG513', 'ARG120', 'TYR355', 'PHE518', 'VAL349', 'LEU352', 'VAL523', 'SER353'], 'Three-letter amino-acid code + position', 'An amino acid is written by a three-letter code and its position in the chain: HIS90 is the histidine at position 90, ARG513 the arginine at 513. Codes: Ala, Arg, Asn, Asp, Cys, Gln, Glu, Gly, His, Ile, Leu, Lys, Met, Phe, Pro, Ser, Thr, Trp, Tyr, Val. COX-2 numbering follows the usual literature, 14 to 15 higher than in the PDB file.', 'structure', ['docking', 'md'])

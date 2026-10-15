@@ -240,3 +240,9 @@ assert.ok(/educational/i.test(DSHORT) && /medical advice/i.test(DSHORT) && /AI-g
 const idx = fsx.readFileSync('index.html', 'utf8'); assert.ok(/AI-generated/.test(idx) && /#\/disclaimer/.test(idx) && /Educational use only/.test(idx), 'the footer carries the disclaimer on every page');
 assert.ok(!/aiImage: false/.test(fsx.readFileSync('js/modules/registry.js', 'utf8')), 'every module picture is AI-generated and carries the badge'); assert.ok(/logo/i.test(fsx.readFileSync('js/disclaimer.js', 'utf8')), 'the logo is disclosed');
 console.log('Disclaimer OK');
+
+// ---------- practice-only note for the workbook
+import { PRACTICE_NOTE } from '../js/disclaimer.js';
+assert.ok(/this course only/.test(PRACTICE_NOTE) && /not enter real/i.test(PRACTICE_NOTE) && /not a research record/.test(PRACTICE_NOTE));
+assert.ok(/PRACTICE EXERCISE/.test(WB.report(wbSpec, wbEx.good, {})), 'the report says it is a practice exercise');
+console.log('Practice note OK');
